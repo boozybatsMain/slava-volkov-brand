@@ -290,6 +290,8 @@ node scripts/shot.mjs --url "http://localhost:5180/?pointer=0.5,-0.3" --out shot
 ```
 Внимание: на 127.0.0.1:5173 обычно работает dev-сервер другого проекта, `Corner Guy Free`. Не убивать процессы по порту без проверки их cwd.
 
+Прод: https://boozybatsmain.github.io/slava-volkov-brand/ (репозиторий `boozybatsMain/slava-volkov-brand`, публичный). Каждый пуш в `main` собирается и выкладывается `.github/workflows/pages.yml`: typecheck, затем `vite build --base /slava-volkov-brand/`. Пути к ассетам поэтому всегда строить от `import.meta.env.BASE_URL` (в `index.html` — `%BASE_URL%`), а не от `/`. Видео и музыка из `content/` в git не попадают (`.gitignore`).
+
 ## Баннеры для соцсетей (2026-10-09)
 Запрос: баннеры для YouTube, X и Reddit из текущего хиро (/sky.html), без навигации.
 
