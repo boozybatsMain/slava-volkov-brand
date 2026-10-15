@@ -1,0 +1,203 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #e4e2dd;
+  overflow: hidden;
+}
+
+.hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Three independent layers, back to front: world → paper (+UI) → floating title. */
+.layer {
+  position: absolute;
+  inset: 0;
+}
+
+.layer--world {
+  z-index: 1;
+}
+
+/* Until the sky's first frame (and wherever WebGL is unavailable) the two holes show a flat
+   sky tone instead of bare paper-coloured recesses. Only once the sheet with its holes exists,
+   so the page never flashes blue before the paper arrives. */
+.hero:has(.pp-sheet) > .layer--world {
+  background: #8f9cb4;
+}
+
+.layer--paper {
+  z-index: 2;
+}
+
+.layer--title {
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Version 2 (index.html): full-bleed sky behind the title, no paper. */
+body.v-sky,
+.v-sky .hero {
+  background: #6f86a8;
+}
+
+.layer--sky {
+  z-index: 1;
+}
+
+/* With the chromatic aberration on (post.aberration), the title and front-sky mounts hand their
+   z-index to their two canvases and stop being stacking contexts (core/channel-split.ts):
+   the blend modes must reach the layers below. The order stays the same. */
+
+/* The sky layers marked front: true — nearest clouds, over the title; never catch the pointer. */
+.layer--skyFront {
+  z-index: 4;
+  pointer-events: none;
+}
+
+/* Nav + tagline (version 2), over the title and the nearest clouds. Only the links catch the pointer. */
+.layer--overlay {
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* ── Version 2 scrolls between screens (src/core/scroll.ts) ──────────────────────────────────────
+   The document scrolls natively (wheel, touch, keys, #hash, Back), but nothing on screen moves with
+   it: the stage is fixed and every screen is drawn inside it from the smoothed scroll position.
+   The track below the stage only gives the document its length: one stop per screen.
+   overflow-anchor: none — when the stops change length (scroll.stops written by the script, the
+   tuner, a resize into the mobile config) core/scroll.ts alone keeps the page at the same place of
+   the film; the browser's own scroll anchoring (in the browsers that have it) would move it as well,
+   and differently in each. */
+html.v-sky {
+  height: auto;
+  overflow: hidden auto;
+  overscroll-behavior-y: none;
+  overflow-anchor: none;
+  scrollbar-width: none;
+}
+
+html.v-sky::-webkit-scrollbar {
+  display: none;
+}
+
+html.v-sky body {
+  height: auto;
+  overflow: visible;
+  overflow-anchor: none;
+}
+
+/* lvh, not svh / dvh: the stage keeps its size when a phone's URL bar slides away, so no canvas is
+   reallocated in the middle of a gesture. Controls stay inside 100svh (Frame.scroll.safeH). */
+.v-sky .hero {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  height: 100lvh;
+}
+
+/* --scroll-travel: scroll.travel (sky.config.ts), written by core/scroll.ts on <html>; --stop-travel:
+   scroll.stops[id of the NEXT stop], written by core/scroll.ts on each stop that has its own length */
+.v-sky .scroll-stop {
+  height: calc(var(--stop-travel, var(--scroll-travel, 0.75)) * 100vh);
+  height: calc(var(--stop-travel, var(--scroll-travel, 0.75)) * 100lvh);
+}
+
+.v-sky .scroll-stop:last-child {
+  height: 100vh;
+  height: 100lvh;
+}
+
+/* Stacking on the stage, back → front: sky 1, title 3, skyFront 4, tagline 5, veil 6, slab 7,
+   projects 8, about 9, aboutText 10, nav 11. The overlay mount stops being a stacking context so that its
+   two roots (sky-overlay/overlay.css: .so-root--tag 5, .so-root--nav 11) take their own places in that order:
+   the veil rises over the tagline, the nav stays on top of everything. */
+.v-sky .layer--overlay {
+  z-index: auto;
+}
+
+/* The cloud curtain, the whiteout and the void (the third sky-layers canvas). */
+.layer--veil {
+  z-index: 6;
+  pointer-events: none;
+}
+
+/* The project screen hanging in the void. */
+.layer--slab {
+  z-index: 7;
+  pointer-events: none;
+}
+
+/* Project texts and arrows on the slab's plane. Only its controls catch the pointer. */
+.layer--projects {
+  z-index: 8;
+  pointer-events: none;
+}
+
+/* ABOUT: the black sheet with the holes (letters) the void shows through, the photos, the crosses. */
+.layer--about {
+  z-index: 9;
+  pointer-events: none;
+}
+
+/* ABOUT: the notes (DOM text on the sheet, placed by the same camera). */
+.layer--aboutText {
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Opening straight on a later screen (a link to #projects, a reload there, a restored scroll): until
+   the veil is in (html[data-in~='veil'], core/hero.ts: it has drawn its first frame), a flat sheet of
+   the void's colour stands where the veil will be — the sky must not flash before the projects.
+   data-section (core/hero.ts; already before the first frame, from index.html, on a #stop link, a
+   reload or a Back that rebuilt the page), :target where it is not set yet — and
+   data-veiled (core/hero.ts, decided by sky.ts) a page that opens part of the way down, where the
+   clouds already hide the title: the bare title must not flash before them either.
+   On the about screen (opened on #about / #about-end, or reloaded anywhere from pos 1.5 on —
+   data-section 2 and 3) the sheet is the about sheet's near-black instead, until the about layer is
+   in (data-in~='about'): the first frame must not flash white before the black. Each goes with its
+   own layer, not with the slowest of them: the black one, at the veil's level and last in its order,
+   lies over the veil — and under the about canvas (z 9), whose letters show what is under them: the
+   black there, until data-hero-full, turned ABOUT grey for up to half a second. With the about
+   layer in and the veil not yet, the white one stands in under the letters. html[data-hero-full]
+   ends both in any case (a layer that never came).
+   --veil-color: veil.color, --about-color: about.sheet.color, both set by sky.ts. */
+html.v-sky:not([data-hero-full]):not([data-in~='veil']):is(:not([data-section]):has(.scroll-stop:not(:first-child):target), [data-section]:not([data-section='0']), [data-veiled]) .hero::after,
+html.v-sky:not([data-hero-full]):not([data-in~='about']):is(:not([data-section]):has(#about:target, #about-end:target), [data-section='2'], [data-section='3']) .hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  background: var(--veil-color, #ecebea);
+}
+
+/* (The ids make this rule win over the white one above whichever of its alternatives matched.) */
+html.v-sky:not([data-hero-full]):not([data-in~='about']):is(:not([data-section]):has(#about:target, #about-end:target), [data-section='2'], [data-section='3']) .hero::after {
+  background: var(--about-color, #0c0c0f);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

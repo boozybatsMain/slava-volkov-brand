@@ -1,0 +1,329 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   PAPER LAYER — sheet with two cut windows + the site UI printed / written on it.
+   All numbers come from params.ts / hero.config.ts as CSS custom properties
+   (set in index.ts on .pp-sheet); nothing here needs editing to art-direct.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.pp-sheet {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* clip-path (the two holes) is set from JS */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+  font-kerning: normal;
+}
+
+/* Text waits for its real faces (index.ts adds .is-type-ready, with a timeout) —
+   no flash of fallback fonts and no reflow when they swap in. */
+.pp-sheet:not(.is-type-ready) :is(.pp-print, .pp-hand) {
+  visibility: hidden;
+}
+
+.pp-tex {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Visually hidden, still read by assistive tech. */
+.pp-sr {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── cut edges ─────────────────────────────────────────────────────────────── */
+
+/* On the paper, around each hole: crisp hairline of the cut + light catching the
+   lower/right cut faces. Lives inside the clipped sheet, so only the outside shows. */
+.pp-cut {
+  position: absolute;
+  pointer-events: none;
+  box-shadow:
+    0 0 0 var(--pp-hair-w) rgba(40, 36, 30, var(--pp-hair-a)),
+    var(--pp-hair-w2) var(--pp-hair-w2) 0 0 rgba(255, 255, 250, var(--pp-hl-a));
+}
+
+/* Over the world, inside each hole: the soft shadow the sheet casts on what is behind. */
+.pp-hole {
+  position: absolute;
+  pointer-events: none;
+  /* box-shadow is set from JS (offset follows the pointer a little) */
+}
+
+/* ── printed / typewriter ink ─────────────────────────────────────────────── */
+
+.pp-print {
+  position: absolute;
+  margin: 0;
+  font-family: 'Roboto Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-weight: var(--pp-mono-weight);
+  font-size: var(--pp-mono-size);
+  line-height: var(--pp-mono-lead);
+  letter-spacing: calc(var(--pp-mono-track) * 1em);
+  color: var(--pp-print);
+  opacity: var(--pp-print-op);
+  mix-blend-mode: multiply;
+  white-space: nowrap;
+  font-variant-ligatures: none;
+}
+
+/* Visible glyphs are drawn from data-ch (see glyphs.ts): the real text lives once, in .pp-sr. */
+.pp-g::before,
+.pp-sp::before,
+.pp-hg::before {
+  content: attr(data-ch);
+}
+
+.pp-typed__vis .pp-g {
+  /* strike density: most letters full, a few a touch lighter */
+  opacity: calc(1 - var(--k) * var(--pp-uneven));
+  /* uneven typebar: whole device pixels only, so most letters stay on the line and a few
+     (≈15 % at uneven 0.14) sit one pixel off. A transform, not `position: relative; top`:
+     Chrome snaps relatively positioned boxes to whole CSS px, so a 0.13 px nudge made some
+     letters jump a full CSS px (3 device px at 3×, an M reading as a small cap). */
+  display: inline-block;
+  transform: translateY(
+    round(calc(var(--v) * var(--pp-uneven) * 4.2 * var(--pp-dev-px, 0.5px)), var(--pp-dev-px, 0.5px))
+  );
+}
+
+.pp-line {
+  display: block;
+}
+
+/* nav */
+.pp-header {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 0;
+}
+
+.pp-nav {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: var(--pp-nav-gap);
+  font-size: var(--pp-nav-size);
+  letter-spacing: calc(var(--pp-nav-track) * 1em);
+  line-height: 1;
+}
+
+.pp-nav ul {
+  display: contents;
+}
+
+.pp-nav li {
+  list-style: none;
+  display: block;
+}
+
+.pp-nav a {
+  position: relative;
+  display: inline-block;
+  color: inherit;
+  text-decoration: none;
+  text-transform: uppercase;
+  /* comfortable hit area without moving the text */
+  padding: 0.6em 0;
+  margin: -0.6em 0;
+  /* trailing letter-space would push the last item off the margin */
+  margin-right: calc(var(--pp-nav-track) * -1em);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pp-nav.is-stacked {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+  line-height: var(--pp-nav-lead);
+}
+
+.pp-nav.is-stacked a {
+  padding: 0.25em 0;
+  margin-top: -0.25em;
+  margin-bottom: -0.25em;
+}
+
+/* hand-drawn underline, written in on hover / keyboard focus */
+.pp-underline {
+  position: absolute;
+  left: -0.15em;
+  top: calc(50% + 0.62em);
+  /* the link box includes one trailing letter-space; stop near the last glyph */
+  width: calc(100% - var(--pp-nav-track) * 1em + 0.35em);
+  height: 0.55em;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.pp-underline path {
+  fill: none;
+  stroke: var(--pp-pen);
+  stroke-width: 1.15px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* dash [0,1] then a long gap; offset 1.25 parks the whole path inside the gap
+     (no zero-length dash → no stray round cap) */
+  stroke-dasharray: 1 1.5;
+  stroke-dashoffset: 1.25;
+  transition: stroke-dashoffset 0.32s cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+/* Hover / focus mark — ui.navHover:
+   'print' (default): a crisp printed rule in the typewriter ink, same weight as .pp-rule —
+                      functional text stays in the printed system;
+   'pen':             the hand-drawn underline above, written in;
+   'none':            no mark (keyboard focus keeps its outline). */
+.pp-nav:not([data-hover='pen']) .pp-underline {
+  display: none;
+}
+
+.pp-nav[data-hover='pen'] a:hover .pp-underline path,
+.pp-nav[data-hover='pen'] a:focus-visible .pp-underline path {
+  stroke-dashoffset: 0;
+  transition-duration: 0.42s;
+}
+
+.pp-nav[data-hover='print'] a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  /* the link box includes one trailing letter-space */
+  right: calc(var(--pp-nav-track) * 1em);
+  top: calc(50% + 0.7em);
+  /* printed, so crisp: a whole number of device px, ≈ 0.07em */
+  height: round(max(0.07em, var(--pp-dev-px, 0.5px)), var(--pp-dev-px, 0.5px));
+  background: currentColor;
+  visibility: hidden;
+}
+
+.pp-nav[data-hover='print'] a:hover::after,
+.pp-nav[data-hover='print'] a:focus-visible::after {
+  visibility: visible;
+}
+
+.pp-nav a:focus-visible {
+  outline: 1px dotted currentColor;
+  outline-offset: 0.35em;
+}
+
+/* Stacked (mobile) nav: the lines are only 1.65em apart, and an outline around the padded
+   link box crossed the letters above and below. Draw the focus box ourselves instead: snug
+   around its own line vertically, a little air left/right. */
+.pp-nav.is-stacked a:focus-visible {
+  outline: none;
+}
+
+.pp-nav.is-stacked a:focus-visible::before {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  top: calc(50% - 0.8em);
+  bottom: calc(50% - 0.8em);
+  left: -0.35em;
+  /* the link box includes one trailing letter-space */
+  right: calc(var(--pp-nav-track) * 1em - 0.35em);
+  outline: 1px dotted currentColor;
+}
+
+.pp-nav.is-stacked[data-hover='print'] a::after {
+  top: calc(50% + 0.56em);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-underline path {
+    transition: none !important;
+  }
+}
+
+/* status line: rule + text */
+.pp-status {
+  display: flex;
+  align-items: center;
+  gap: var(--pp-rule-gap);
+}
+
+.pp-status.is-below {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.pp-status.is-right .pp-typed {
+  margin-right: calc(var(--pp-mono-track) * -1em);
+}
+
+.pp-rule {
+  display: block;
+  flex: none;
+  width: var(--pp-rule-w);
+  height: var(--pp-rule-h);
+  background: currentColor;
+  transform: translateY(calc(var(--pp-rule-drop) * 1em));
+}
+
+.pp-status.is-below .pp-rule {
+  margin-top: var(--pp-rule-gap);
+}
+
+.is-upper {
+  text-transform: uppercase;
+}
+
+/* ── handwritten pen ink ──────────────────────────────────────────────────── */
+
+.pp-hand {
+  position: absolute;
+  margin: 0;
+  font-family: 'Kalam', 'Bradley Hand', cursive;
+  font-weight: var(--pp-hand-weight);
+  font-size: var(--pp-hand-size);
+  line-height: var(--pp-hand-lead);
+  letter-spacing: calc(var(--pp-hand-track) * 1em);
+  color: var(--pp-pen);
+  opacity: var(--pp-pen-op);
+  mix-blend-mode: multiply;
+  white-space: nowrap;
+  transform-origin: 0 0;
+  font-variant-ligatures: none;
+}
+
+.pp-hand__line {
+  display: block;
+  transform-origin: 0 65%;
+  transform: translate(calc(var(--lx) * var(--pp-j-lx)), calc(var(--ly) * var(--pp-j-ly)))
+    rotate(calc(var(--lt) * var(--pp-j-lt)));
+}
+
+.pp-hand__word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.pp-hand__space {
+  display: inline-block;
+  width: 0.3em;
+}
+
+.pp-hg {
+  display: inline-block;
+  transform-origin: 50% 75%;
+  transform: translate(calc(var(--gx) * var(--pp-j-gx)), calc(var(--gy) * var(--pp-j-gy)))
+    rotate(calc(var(--gt) * var(--pp-j-gt))) scale(calc(1 + var(--gs) * var(--pp-j-gs)));
+  opacity: calc(1 - var(--gp) * var(--pp-pressure));
+}

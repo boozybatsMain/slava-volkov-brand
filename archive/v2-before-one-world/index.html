@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en" class="v-sky">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Slava Volkov</title>
+    <meta name="description" content="Slava Volkov — games, software, experiments." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%235f7aa0'/%3E%3Crect x='4' y='5' width='8' height='5' fill='%23f2cfa8'/%3E%3C/svg%3E" />
+    <!-- the layered sky (sky.source 'layers', the default): its pictures are fetched with the HTML.
+         as=fetch + crossorigin = exactly what the layer's fetch() asks for (no second download).
+         The plate is wide or tall by the screen's aspect (sky.tallBelow = 1).
+         The hrefs start with Vite's base (the BASE_URL env token): vite build --base /sub/ → /sub/assets/…,
+         so a sub-path deploy works. -->
+    <link rel="preload" as="fetch" crossorigin href="%BASE_URL%assets/sky-layers/sky-wide.webp" media="(min-aspect-ratio: 1/1)" fetchpriority="high" />
+    <link rel="preload" as="fetch" crossorigin href="%BASE_URL%assets/sky-layers/sky-tall.webp" media="(max-aspect-ratio: 999/1000)" fetchpriority="high" />
+    <link rel="preload" as="fetch" crossorigin href="%BASE_URL%assets/sky-layers/bank-front.webp" fetchpriority="high" />
+    <link rel="preload" as="fetch" crossorigin href="%BASE_URL%assets/sky-layers/bank-back.webp" />
+    <link rel="preload" as="fetch" crossorigin href="%BASE_URL%assets/sky-layers/cloudlets-sparse-b.webp" />
+    <link rel="preload" as="fetch" crossorigin href="%BASE_URL%assets/sky-layers/cloudlets.webp" />
+    <link rel="preload" as="fetch" crossorigin href="%BASE_URL%assets/sky-layers/moon.webp" />
+    <!-- cloudletsLeft: desktop only (mobile.sky.layers.cloudletsLeft.src is '').
+         Desktop = width ≥ breakpoint (560) and not narrower than mobileAspect (1), as in core/layout.ts. -->
+    <link rel="preload" as="fetch" crossorigin href="%BASE_URL%assets/sky-layers/cloudlets-sparse-a.webp" media="(min-width: 560px) and (min-aspect-ratio: 1/1)" />
+    <!-- the clouds over the title (sky.layers.frontClouds, the skyFront canvas). If its opacity
+         is set to 0, drop this line too: a layer at opacity 0 is never downloaded. -->
+    <link rel="preload" as="fetch" crossorigin href="%BASE_URL%assets/sky-layers/foreground-b.webp" />
+    <link rel="preload" as="fetch" crossorigin href="%BASE_URL%assets/title-raster/meta.json" />
+    <link rel="preload" as="image" crossorigin href="%BASE_URL%assets/title-raster/color.png" />
+    <link rel="preload" as="image" crossorigin href="%BASE_URL%assets/title-raster/maps.png" />
+    <link rel="preload" as="image" crossorigin href="%BASE_URL%assets/title-raster/normals.png" />
+    <!-- The very first frame, before any stylesheet: in dev Vite injects styles.css from JS, and until
+         then the page painted unstyled white. Only the colour of what the first frame stands for, the
+         same as styles.css: the sky's blue; the void's white on a later stop (#projects); the about
+         sheet's near-black on #about / #about-end — by data-section (set before the first frame by the
+         script under the scroll track) or, without it, by the :target. :where() — no weight, so once
+         styles.css is in, its own rules decide exactly as before. -->
+    <style>
+      :where(html.v-sky) { background: #6f86a8; }
+      :where(html.v-sky:is(:not([data-section]):has(.scroll-stop:not(:first-child):target), [data-section]:not([data-section='0']))) { background: var(--veil-color, #ecebea); }
+      :where(html.v-sky:is(:not([data-section]):has(#about:target, #about-end:target), [data-section='2'], [data-section='3'])) { background: var(--about-color, #0c0c0f); }
+      :where(.sr-only) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    </style>
+  </head>
+  <body class="v-sky">
+    <!-- the stage: fixed, every screen is drawn inside it (src/styles.css → .v-sky .hero) -->
+    <main id="hero" class="hero">
+      <h1 class="sr-only">Slava Volkov</h1>
+    </main>
+    <!-- The scroll track: one stop per screen (hero, projects, about, the end of the about tour; later
+         contact). It only gives the document its length and the nav's #links their targets — the picture is
+         driven by src/core/scroll.ts. The way TO a stop is scroll.stops[id] screens long (scroll.travel
+         when not set): sky.config.ts → scroll. -->
+    <div class="scroll-track" aria-hidden="true"><div class="scroll-stop" id="top"></div><div class="scroll-stop" id="projects"></div><div class="scroll-stop" id="about"></div><div class="scroll-stop" id="about-end"></div></div>
+    <!-- Where the page opens is known before its first frame, so its screen is too — data-section, as
+         core/hero.ts sets it from then on (round(pos)), decided as src/core/scroll.ts → land() decides
+         the place: a reload, or a Back that rebuilt the page — where it was left
+         (history.state.heroScroll); a fresh link to a stop's #id — that stop (the browser sets :target
+         only later, after the first frame). Then the sheet in <head> and the loading sheet of styles.css
+         have the right colour from the start: no blue frame before the white of the projects or the
+         black of ABOUT. A pinned ?scroll=<stops> (debug: screenshots) decides over both, as it decides
+         the picture (core/scroll.ts → pin) — on the dev server only (Vite writes its DEV flag into the
+         test below: 'true' there): a public build ignores the param (core/hero.ts strips it), so its
+         first frame must too; a VITE_HERO_DEBUG build keeps the param but paints its first frame by
+         the rules above. -->
+    <script>
+      (function () {
+        try {
+          var nav = performance.getEntriesByType('navigation')[0]
+          var at = history.state && history.state.heroScroll
+          var stops = document.querySelectorAll('.scroll-track > .scroll-stop')
+          var pinned = '%DEV%' === 'true' ? new URLSearchParams(location.search).get('scroll') : null
+          if (pinned !== null && isFinite(Number(pinned))) at = Number(pinned)
+          else if (nav && (nav.type === 'reload' || nav.type === 'back_forward')) {
+            if (typeof at !== 'number' || !isFinite(at)) at = null
+          } else {
+            at = null
+            for (var i = 0; i < stops.length; i++) if ('#' + stops[i].id === location.hash) at = i
+          }
+          if (at !== null) document.documentElement.setAttribute('data-section', String(Math.min(Math.max(0, Math.round(at)), stops.length - 1)))
+        } catch (e) {}
+      })()
+    </script>
+    <script type="module" src="/src/sky.ts"></script>
+  </body>
+</html>

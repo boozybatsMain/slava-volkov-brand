@@ -1,0 +1,64 @@
+{
+ "source": "../_sources/fire-spread.mp4",
+ "crop": "608:1080:759:0",
+ "layout": "fullbleed",
+ "text_y": 250,
+ "wrap": 22,
+ "segments": [
+  [
+   6.0,
+   3.7488,
+   1
+  ],
+  [
+   0.0,
+   3.7488,
+   1
+  ],
+  [
+   21.0,
+   3.7488,
+   1
+  ],
+  [
+   47.0,
+   3.7488,
+   1
+  ],
+  [
+   38.4,
+   3.7488,
+   1
+  ],
+  [
+   51.5,
+   3.7488,
+   1
+  ]
+ ],
+ "texts": [
+  [
+   "The fire here actually spreads",
+   0,
+   7.4976
+  ],
+  [
+   "It eats the forest on its own",
+   7.4976,
+   14.9952
+  ],
+  [
+   "Runs right in the browser.",
+   14.9952,
+   18.744
+  ],
+  [
+   "What should I set on fire next?",
+   18.744,
+   99
+  ]
+ ],
+ "game_audio": 1.0,
+ "small": false,
+ "out": "/Users/boozybats/Public/Repos/Slava Volkov Brand/content/2026-10-22-wildfire/vertical_clean.mp4"
+}

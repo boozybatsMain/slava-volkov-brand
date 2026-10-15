@@ -1,0 +1,135 @@
+/* ABOUT notes (src/layers/about-text): DOM over the about canvas. Every number arrives from
+   sky.config.ts → about.text as inline sizes on each note and custom properties on .at (index.ts),
+   already at the note's own layout scale (it is laid out at the largest size it is shown at and
+   shrunk back by its transform), so anything written in plain px here would be off by that scale. */
+
+.at {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--at-ink, #e8e9ec);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-kerning: normal;
+}
+
+.at-stage {
+  position: absolute;
+  inset: 0;
+}
+
+/* One note: placed by its transform alone (translate to whole device px · rotate · scale). Hidden
+   until typed (opacity, written from index.ts — the screen-reader copy stays in the tree): showing and
+   hiding are cuts (the lines themselves step in as clips; a note leaving the frame in one long frame
+   must not hang where it was). A column of lines, each exactly as wide as its own text: its stepped
+   clip walks its words, not the width of the note's longest line (as the projects texts). */
+.at-note {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transform-origin: 0 0;
+  white-space: pre;
+  text-transform: uppercase;
+  font-weight: 400;
+  opacity: 0;
+}
+
+/* Only the dimming of a shown note under the nav (and back) fades — index.ts sets the class for it. */
+.at-note.is-fade {
+  transition: opacity 0.24s linear;
+}
+
+/* While the notes may show (index.ts): each on its own compositor layer, moved without repainting.
+   On the hero and the projects screen they are plain hidden boxes — no layers held for nothing. */
+.at.is-on .at-note,
+.at.is-on .at-rule {
+  will-change: transform;
+}
+
+.at-note--right {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.at-note--mono,
+.at-note--list,
+.at-note--count {
+  font-family: 'Roboto Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+
+/* Each line is typed on its own (clip-path, a share of the line's own box). The tracking after the
+   last letter is not part of the line: a right-aligned note ends on its last glyph, a dash sits under
+   the text, not the gap. */
+.at-line {
+  display: block;
+  margin-right: calc(-1em * var(--at-tr, 0));
+}
+
+/* ── handwriting: version 1's pen (hand.ts), light ink, normal blend (multiply is invisible on black) ── */
+
+.at-note--hand {
+  font-family: 'Kalam', 'Bradley Hand', cursive;
+  font-weight: 300;
+  font-variant-ligatures: none;
+}
+
+.at-hand-line {
+  transform-origin: 0 65%;
+  transform: translate(calc(var(--lx) * var(--at-j-lx)), calc(var(--ly) * var(--at-j-ly)))
+    rotate(calc(var(--lt) * var(--at-j-lt)));
+}
+
+.at-hand-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.at-hand-space {
+  display: inline-block;
+  width: 0.3em;
+}
+
+.at-hg {
+  display: inline-block;
+  transform-origin: 50% 75%;
+  transform: translate(calc(var(--gx) * var(--at-j-gx)), calc(var(--gy) * var(--at-j-gy)))
+    rotate(calc(var(--gt) * var(--at-j-gt))) scale(calc(1 + var(--gs) * var(--at-j-gs)));
+  opacity: calc(1 - var(--gp) * var(--at-pressure));
+}
+
+/* ── the short rule under a text block (about.text.dash) ──
+   Inside the note only an invisible stand-in keeps its place in the layout (the note's own px); the
+   dash itself is .at-rule, a box beside the notes at its size on screen (whole device px, written
+   from index.ts), placed where the stand-in is: 1 device px stays 1 device px, which no row of a
+   note scaled to 2/3 (a 1× screen) can hold. Its opacity (note × about.text.dash.opacity) and its
+   typing clip are written from index.ts too. */
+
+.at-dash {
+  display: block;
+  width: var(--at-dash-w, 20px);
+  height: var(--at-dash-h, 1px);
+  margin-top: var(--at-dash-gap, 14px);
+  visibility: hidden;
+}
+
+.at-note--right .at-dash {
+  margin-left: auto;
+}
+
+.at-rule {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  background: currentColor;
+  opacity: 0;
+}
+
+.at-rule.is-fade {
+  transition: opacity 0.24s linear;
+}

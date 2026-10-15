@@ -1,0 +1,288 @@
+/* Sky overlay (src/layers/sky-overlay): nav + tagline on the title's plane. Numbers: sky.config.ts → overlay. */
+
+.so-root {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 700ms ease;
+  font-family: 'Geist Variable', 'Geist', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* fonts in (or the wait timed out): fade in instead of flashing the fallback face */
+.so-root.so-ready {
+  opacity: 1;
+}
+
+/* The two roots sit in the stage's own stacking order (src/styles.css): the tagline right over the
+   nearest clouds (skyFront 4), the nav over the later screens (veil 6, slab 7, projects 8, about 9,
+   aboutText 10). */
+.so-root--nav {
+  z-index: 11;
+}
+
+.so-root--tag {
+  z-index: 5;
+}
+
+/* ── nav: line segments and words, each laid flat at the page's top-left and bent onto the title
+   by its own matrix3d (flat CSS px → screen), rewritten every frame the title turns.
+   --so-ink: light on the sky, dark on the white void (overlay.nav.color → dock.ink, by the scroll);
+   on the ABOUT sheet the one ink the nav inverts what is under it with (.so-invert, below) ── */
+
+.so-nav {
+  color: var(--so-ink, #eef0f5);
+}
+
+.so-line,
+.so-link,
+.so-dot,
+.so-progress {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.so-line {
+  height: var(--so-line-w, 1px);
+  background: currentColor;
+  opacity: var(--so-line-a, 0.5);
+}
+
+.so-link {
+  pointer-events: auto;
+  white-space: nowrap;
+  /* Geist: with line-height 1 the cap height sits (nearly) centred in the box → on the line */
+  line-height: 1;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: inherit;
+  opacity: var(--so-link-a, 0.75);
+  /* --so-halo: a dark breath under the letters while the ink changes (overlay.nav.dock.halo) */
+  text-shadow: var(--so-halo, none);
+  transition: opacity 220ms ease, text-shadow 220ms ease;
+}
+
+/* a big hit area around the small rotated word (overlay.nav.hit), without moving the layout.
+   On the way to the dock the layer takes it over (--so-hit-y / -s / -e, local px): there it covers
+   the label and its dot and is overlay.nav.dock.hit tall. */
+.so-link::before {
+  content: '';
+  position: absolute;
+  inset: var(--so-hit-y, calc(-1 * var(--so-hit, 2em))) var(--so-hit-e, calc(-0.6 * var(--so-hit, 2em)))
+    var(--so-hit-y, calc(-1 * var(--so-hit, 2em))) var(--so-hit-s, calc(-0.6 * var(--so-hit, 2em)));
+}
+
+/* hover: full brightness + a soft light around the letters (overlay.nav.hover) */
+.so-link:hover,
+.so-link:focus-visible {
+  opacity: var(--so-hover-a, 1);
+  text-shadow:
+    0 0 0.35em rgba(255, 255, 255, calc(0.9 * var(--so-glow, 0.8))),
+    0 0 1.2em rgba(255, 244, 228, calc(0.6 * var(--so-glow, 0.8)));
+}
+
+.so-link:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 0.5em;
+}
+
+/* a screen that is not built yet: the word looks like the others but answers to nothing */
+.so-link[aria-disabled='true'] {
+  cursor: default;
+}
+
+.so-link[aria-disabled='true']:hover {
+  opacity: var(--so-link-a, 0.75);
+  text-shadow: var(--so-halo, none);
+}
+
+/* ── the vertical progress nav (overlay.nav.dock): the same elements, off the plane.
+   .is-flying — on the way (each element on its quad of the rod), .is-docked — arrived: plain boxes on
+   whole pixels, the labels at their real font size ── */
+
+/* one dot per word, born in the gap the word leaves in the line; the layer puts its CENTRE in place */
+.so-dot {
+  width: var(--so-dot, 12px);
+  height: var(--so-dot, 12px);
+  margin: calc(var(--so-dot, 12px) / -2) 0 0 calc(var(--so-dot, 12px) / -2);
+  transform-origin: 50% 50%;
+  opacity: var(--so-link-a, 0.75);
+  /* part of its word's target at every moment (the layer passes a click on to the link before it) */
+  pointer-events: auto;
+  cursor: default;
+  visibility: hidden;
+  transition: opacity 220ms ease;
+}
+
+.so-link:not([aria-disabled='true']) + .so-dot {
+  cursor: pointer;
+}
+
+/* a little air around the small disc, for a finger */
+.so-dot::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+}
+
+/* the disc itself: a ring; filled for the screen the page is on */
+.so-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: var(--so-ring, 1.5px) solid currentColor;
+  border-radius: 50%;
+  transition: background-color 260ms ease, transform 220ms ease;
+}
+
+.so-dot.is-current::after {
+  background-color: currentColor;
+}
+
+.so-link:not([aria-disabled='true']):hover + .so-dot::after,
+.so-link:not([aria-disabled='true']) + .so-dot:hover::after,
+.so-link:focus-visible + .so-dot::after {
+  transform: scale(1.3);
+}
+
+/* …and the dot under the pointer lights its word, where the browser can look back (:has) */
+.so-link:not([aria-disabled='true']):has(+ .so-dot:hover) {
+  opacity: var(--so-hover-a, 1);
+}
+
+/* the part of the line the scroll has passed, drawn over it */
+.so-progress {
+  width: 100px;
+  height: 1px;
+  background: currentColor;
+  opacity: var(--so-fill-a, 0);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.so-nav.is-flying .so-dot,
+.so-nav.is-docked .so-dot,
+.so-nav.is-flying .so-progress,
+.so-nav.is-docked .so-progress {
+  visibility: visible;
+}
+
+/* light on the sky, dark on the white: every piece changes ink as the white reaches it (the layer sets
+   its colour) — as a short fade on a clock, never a grey to rest on.
+   --so-ink-t: overlay.nav.morph.ink.time */
+.so-nav:is(.is-flying, .is-docked) :is(.so-line, .so-progress) {
+  transition: color var(--so-ink-t, 260ms) ease;
+}
+
+.so-nav:is(.is-flying, .is-docked) .so-dot {
+  transition: color var(--so-ink-t, 260ms) ease, opacity 220ms ease;
+}
+
+.so-nav:is(.is-flying, .is-docked) .so-link {
+  transition: color var(--so-ink-t, 260ms) ease, opacity 220ms ease, text-shadow 220ms ease;
+}
+
+/* On ABOUT (from about.pull.from): the nav inverts whatever is under it — one constant ink
+   (overlay.nav.dock.invertInk = the void under the nav − dock.ink, set by the layer) blended by
+   difference: exactly dock.ink over the warm void (as on the projects screen), light over the black
+   concrete letters, letter by letter. One ink for every piece, so nothing fades its colour here
+   (opacity and the hover still do).
+   No compositing layer is kept for the root ahead of the switch (will-change / isolation): a Chrome
+   trace of the first pass through it in a fresh browser shows ≈ 1.5 ms of pre-paint, paint, layerize
+   and raster in that frame and no long GPU task, and the frame times were the same with a pre-made
+   layer (the long frames of that pass are the about canvas's first WebGL work, before the switch). */
+.so-root--nav.so-invert {
+  mix-blend-mode: difference;
+}
+
+.so-root--nav.so-invert .so-nav:is(.is-flying, .is-docked) :is(.so-line, .so-progress) {
+  transition: none;
+}
+
+.so-root--nav.so-invert .so-nav:is(.is-flying, .is-docked) .so-dot {
+  transition: opacity 220ms ease;
+}
+
+.so-root--nav.so-invert .so-nav:is(.is-flying, .is-docked) .so-link {
+  transition: opacity 220ms ease, text-shadow 220ms ease;
+}
+
+/* the frame the blend flips in (on or off): the new colours go in at once — a colour fade across the
+   flip would show the old ink in the new blend (light letters over the white) */
+.so-root--nav.so-snap .so-nav:is(.is-flying, .is-docked) :is(.so-line, .so-progress, .so-dot, .so-link),
+.so-root--nav.so-snap .so-nav .so-dot::after {
+  transition: none;
+}
+
+/* arrived: nothing is scaled any more, so nothing needs a layer of its own — plain crisp DOM */
+.so-nav.is-docked .so-line,
+.so-nav.is-docked .so-link,
+.so-nav.is-docked .so-dot {
+  will-change: auto;
+}
+
+/* on the white void a white glow says nothing: the word simply goes to full ink (docked, --so-halo is
+   unset) */
+.so-nav.is-docked .so-link:hover,
+.so-nav.is-docked .so-link:focus-visible {
+  text-shadow: var(--so-halo, none);
+}
+
+.so-nav.is-docked .so-link[aria-disabled='true']:hover {
+  opacity: var(--so-link-a, 0.75);
+}
+
+/* Reduced motion, while the ABOUT scene dissolves in as a checker (¼ ½ ¾): a panel in the colour of the
+   void under the nav (dock.invertInk + dock.ink) under the whole docked column — the dark labels read on
+   it as on the projects screen, and over the bare void it does not show. The layer places it (the
+   column's box + a margin, whole px) and sets its colour and opacity (overlay.nav.dock.checkerHalo);
+   shown only then. Under the nav's pieces (first in the root), never in the way of a click. */
+.so-backing {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: none;
+  transform-origin: 0 0;
+  pointer-events: none;
+  /* its edge fades out over --so-feather (index.ts → look()): the void under the nav is not one flat
+     colour — it shades across the column by a few levels and has grain —, so a flat panel's straight
+     edge showed as a lighter box on phones; feathered, it melts into the void (the labels stay on its
+     solid middle: the feather is added to its padding) */
+  --so-f: var(--so-feather, 12px);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 var(--so-f), #000 calc(100% - var(--so-f)), transparent),
+    linear-gradient(180deg, transparent, #000 var(--so-f), #000 calc(100% - var(--so-f)), transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 var(--so-f), #000 calc(100% - var(--so-f)), transparent),
+    linear-gradient(180deg, transparent, #000 var(--so-f), #000 calc(100% - var(--so-f)), transparent);
+  mask-composite: intersect;
+}
+
+/* env(safe-area-inset-*) in px, read by the layer: the docked nav keeps clear of a phone's notch */
+.so-safe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: env(safe-area-inset-right, 0px);
+  height: env(safe-area-inset-top, 0px);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ── tagline ── */
+
+.so-tagline {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  white-space: pre;
+  text-transform: uppercase;
+  pointer-events: none;
+}

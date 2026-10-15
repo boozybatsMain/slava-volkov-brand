@@ -1,0 +1,336 @@
+/* Project texts and controls (src/layers/projects): real DOM on the slab's plane.
+   Every number arrives from sky.config.ts → projects.ui as a custom property on .pj (index.ts),
+   already in the plane's own px: on a 1× screen the plane is laid out bigger (--pj-ss) and bent back
+   to size, so anything written in plain px here must be multiplied by --pj-ss. */
+
+.pj {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  color: var(--pj-ink);
+  font-family: 'Roboto Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-kerning: normal;
+}
+
+/* The slab is on the stage and the faces are in (or the wait timed out). No fade: the lines step in
+   by themselves (clip-path, index.ts), like everything this renderer draws. */
+.pj.is-ready.is-here {
+  opacity: 1;
+}
+
+/* The slab's face, as a flat rectangle of its size at scale 1 (× --pj-ss); one matrix3d (rewritten
+   whenever the slab's pose changes) bends it — and everything laid out around it — onto the slab. */
+.pj-plane {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+/* Blocks: placed in the plane's flat px (left / top from index.ts), may lie outside its box.
+   Their own transform is the safe-area fit (a slide and, if there is no room, a scale). */
+.pj-label,
+.pj-face,
+.pj-info,
+.pj-ctrl {
+  position: absolute;
+  margin: 0;
+  transform-origin: 0 0;
+}
+
+/* Only while the texts are in (.is-live) does anything here catch the pointer. */
+.pj.is-live :is(.pj-face, .pj-link, .pj-btn, .pj-zone) {
+  pointer-events: auto;
+}
+
+/* The picture itself, for assistive tech (role="img"), and the swipe zone: a horizontal drag
+   flips the project, a vertical one stays the browser's — it scrolls the page — and so do two
+   fingers: the picture is the thing a visitor would zoom into. */
+.pj-face {
+  inset: 0;
+  touch-action: pan-y pinch-zoom;
+  /* a drag that starts on the picture must not begin selecting the texts under it */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ── section label ── */
+
+.pj-label {
+  font-size: var(--pj-label);
+  font-weight: 400;
+  line-height: var(--pj-label-box);
+  letter-spacing: calc(var(--pj-label-track) * 1em);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--pj-text);
+}
+
+/* focused from script only (the nav's #projects link): the page has moved, nothing to outline */
+.pj-label:focus {
+  outline: none;
+}
+
+/* ── title, meta, description, link ── */
+
+/* The block is always as tall as with the longest description (--pj-lines; this one has --pj-rows):
+   the link stays right under its text, and the arrows that follow the block (ctrl.follow) never
+   jump from under a thumb. */
+.pj-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-bottom: calc((var(--pj-lines, 0) - var(--pj-rows, 0)) * var(--pj-row));
+}
+
+/* every line is exactly as wide as its text: its stepped clip (index.ts) walks the words, not a column */
+.pj-info > * {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.pj-title {
+  font-family: 'Geist Variable', 'Geist', system-ui, sans-serif;
+  font-size: var(--pj-title);
+  font-weight: var(--pj-title-w);
+  /* Geist: in a box one em tall (rounded to whole px) the caps sit (nearly) centred */
+  line-height: var(--pj-title-box);
+  letter-spacing: calc(var(--pj-title-track) * 1em);
+  text-transform: uppercase;
+}
+
+.pj-meta {
+  margin-top: var(--pj-meta-gap);
+  font-size: var(--pj-meta);
+  line-height: var(--pj-meta-box);
+  letter-spacing: calc(var(--pj-meta-track) * 1em);
+}
+
+/* The description: one span per line (wrapped in index.ts — the face is monospace, so the breaks
+   are exact). */
+.pj-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: var(--pj-mono-gap);
+  /* as wide as the widest line of any project (--pj-cols characters): see .pj-info */
+  min-width: calc(var(--pj-cols, 0) * 1ch);
+  font-size: var(--pj-mono);
+  line-height: var(--pj-row);
+  color: var(--pj-text);
+}
+
+.pj-text > span {
+  display: block;
+}
+
+/* text for assistive tech only (the whole description, the link's "opens in a new tab"): as written */
+.pj .sr-only {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.pj-more {
+  margin-top: var(--pj-link-gap);
+  font-size: var(--pj-link);
+  line-height: var(--pj-link-box);
+  letter-spacing: calc(var(--pj-link-track) * 1em);
+  text-transform: uppercase;
+}
+
+.pj-link,
+.pj-soon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8em;
+}
+
+.pj-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* a finger-sized hit area around the small line, without moving the layout */
+.pj-link::before {
+  content: '';
+  position: absolute;
+  inset: -1.4em -0.9em;
+}
+
+/* the underline: under the words only — not under the arrow, not under the tracking after the last letter */
+.pj-link-words {
+  position: relative;
+}
+
+/* a border, not a background: it survives forced-colors mode */
+.pj-link-words::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: calc(var(--pj-link-track) * 1em);
+  top: calc(100% + var(--pj-underline));
+  border-top: var(--pj-rule) solid currentColor;
+}
+
+.pj-link-arrow {
+  display: block;
+  flex: none;
+  /* the tracking after the last letter already stands between the words and the arrow */
+  margin-left: calc(var(--pj-link-track) * -1em);
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--pj-rule);
+  transition: transform 120ms steps(2, end);
+}
+
+/* no link yet: the same line, quieter, with the ring of a nav dot that is not the current one */
+.pj-soon {
+  color: var(--pj-text);
+}
+
+.pj-soon::before {
+  content: '';
+  flex: none;
+  width: 0.62em;
+  height: 0.62em;
+  margin-right: -0.25em;
+  border: var(--pj-rule) solid currentColor;
+  border-radius: 50%;
+}
+
+/* ── arrows and counter ── */
+
+.pj-ctrl {
+  display: flex;
+  align-items: center;
+  gap: var(--pj-ctrl-gap);
+  font-size: var(--pj-count);
+  line-height: 1;
+  letter-spacing: calc(var(--pj-link-track) * 1em);
+  white-space: nowrap;
+}
+
+/* The button's box is the arrow itself (so the arrow's tail lines up with the text above it);
+   the hit area is its ::before: --pj-hit tall (ctrl.size divided by the plane's scale right there,
+   so never smaller than that on screen), from half of that beyond the arrow's outer end to the
+   middle of the counter (--pj-reach). The two halves of "← 02 / 05 →" are the two buttons: the
+   slab swings when a project flips, and the next click must still land. */
+.pj-btn {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--pj-arrow);
+  height: var(--pj-btn);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pj-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  height: var(--pj-hit, 44px);
+  transform: translateY(-50%);
+}
+
+.pj-prev::before {
+  left: calc(var(--pj-hit, 44px) / -2);
+  right: calc(-1 * var(--pj-reach, 0px));
+}
+
+.pj-next::before {
+  left: calc(-1 * var(--pj-reach, 0px));
+  right: calc(var(--pj-hit, 44px) / -2);
+}
+
+/* Stand-ins for the two hit areas on a copy of the plane that holds still while a project flips
+   (index.ts): the slab swings then, and the next click at the same spot must still land. */
+.pj-zones {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+
+.pj-zone {
+  position: absolute;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 1-px line arrows, the nav line's kin */
+.pj-arrow {
+  display: block;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--pj-rule);
+  transition: transform 120ms steps(2, end);
+}
+
+.pj-count {
+  /* the tracking after the last digit is not part of the visible word: keep the gaps even */
+  margin-right: calc(var(--pj-link-track) * -1em);
+}
+
+.pj-count-sep,
+.pj-count-all {
+  color: var(--pj-text);
+}
+
+.pj-count-cur {
+  display: inline-block;
+}
+
+/* ── states ── */
+
+/* .is-hover / .is-press: the same, passed on from the arrow's stand-in zone (input.ts) */
+@media (hover: hover) {
+  .pj-link:hover .pj-link-arrow {
+    transform: translate(calc(2px * var(--pj-ss, 1)), calc(-2px * var(--pj-ss, 1)));
+  }
+
+  .pj-next:is(:hover, .is-hover) .pj-arrow {
+    transform: translateX(calc(4px * var(--pj-ss, 1)));
+  }
+
+  .pj-prev:is(:hover, .is-hover) .pj-arrow {
+    transform: translateX(calc(-4px * var(--pj-ss, 1)));
+  }
+}
+
+.pj-next:is(:active, .is-press) .pj-arrow {
+  transform: translateX(calc(8px * var(--pj-ss, 1)));
+}
+
+.pj-prev:is(:active, .is-press) .pj-arrow {
+  transform: translateX(calc(-8px * var(--pj-ss, 1)));
+}
+
+.pj-link:focus-visible,
+.pj-btn:focus-visible {
+  outline: var(--pj-rule) solid currentColor;
+  outline-offset: 0.7em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pj-arrow,
+  .pj-link-arrow {
+    transition: none;
+  }
+}

@@ -1,0 +1,10 @@
+import { chromium } from 'playwright-core'
+const browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--enable-webgl'] })
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 })
+await page.goto(process.argv[2], { waitUntil: 'load' })
+await page.waitForFunction(() => document.documentElement.dataset.heroReady === '1', null, { timeout: 30000 })
+await page.waitForTimeout(800)
+const p = page.evaluate(() => new Promise((res) => { let n = 0; const t0 = performance.now(); const f = () => { n++; if (performance.now() - t0 < 3000) requestAnimationFrame(f); else res(n / 3) }; requestAnimationFrame(f) }))
+for (let i = 0; i < 40; i++) await page.mouse.move(200 + (i % 2) * 1000, 200 + (i % 3) * 200, { steps: 4 })
+console.log('fps', await p)
+await browser.close()

@@ -1,0 +1,13 @@
+node_modules
+dist
+shots
+.DS_Store
+.handoff-build-reports.json
+.fal-work
+.gen-work
+banners/work
+.playwright-mcp
+.claude/settings.local.json
+# тяжёлые медиа контента (видео до 150 МБ, музыка) живут только локально
+content/**/*.mp4
+content/**/*.mp3

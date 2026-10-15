@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Slava Volkov</title>
+    <meta name="description" content="Slava Volkov — games, software, experiments." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23e4e2dd'/%3E%3Crect x='4' y='4' width='7' height='7' fill='%235b7fb0'/%3E%3C/svg%3E" />
+    <!-- the title's assets: start downloading with the page instead of after three chained JS chunks -->
+    <link rel="preload" as="fetch" crossorigin href="/assets/title-raster/meta.json" />
+    <link rel="preload" as="image" crossorigin href="/assets/title-raster/color.png" />
+    <link rel="preload" as="image" crossorigin href="/assets/title-raster/maps.png" />
+    <link rel="preload" as="image" crossorigin href="/assets/title-raster/normals.png" />
+  </head>
+  <body>
+    <main id="hero" class="hero"></main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,65 @@
+{
+ "source": "~/Desktop/7909700747234323367.MP4",
+ "crop": "675:675:302:0",
+ "layout": "square",
+ "square_y": 430,
+ "text_y": 200,
+ "wrap": 22,
+ "segments": [
+  [
+   0.0,
+   4.5,
+   0.8667
+  ],
+  [
+   7.3,
+   2.7276,
+   1
+  ],
+  [
+   26.0,
+   3.6368,
+   1
+  ],
+  [
+   43.0,
+   3.6368,
+   1
+  ],
+  [
+   53.0,
+   3.6368,
+   1
+  ],
+  [
+   78.0,
+   7.2736,
+   1.25
+  ]
+ ],
+ "texts": [
+  [
+   "I'm building a world that keeps itself in balance",
+   0,
+   4.5
+  ],
+  [
+   "Every animal has its own little brain",
+   4.5,
+   10.8644
+  ],
+  [
+   "Senses. Needs. Reactions.",
+   10.8644,
+   18.138
+  ],
+  [
+   "I mostly just watch.",
+   18.138,
+   99
+  ]
+ ],
+ "game_audio": 0,
+ "small": false,
+ "out": "/Users/boozybats/Public/Repos/Slava Volkov Brand/content/2026-10-15-island/vertical_clean.mp4"
+}

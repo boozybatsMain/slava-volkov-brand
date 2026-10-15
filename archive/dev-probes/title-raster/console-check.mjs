@@ -1,0 +1,16 @@
+import { chromium } from 'playwright-core'
+const browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--enable-webgl'] })
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 })
+page.on('console', (m) => console.log(`[${m.type()}] ${m.text()}`))
+page.on('pageerror', (e) => console.log('[pageerror]', e.message))
+page.on('requestfailed', (r) => console.log('[reqfail]', r.url()))
+page.on('response', (r) => { if (r.status() >= 400) console.log('[http', r.status(), ']', r.url()) })
+await page.goto(process.argv[2], { waitUntil: 'load' })
+await page.waitForFunction(() => document.documentElement.dataset.heroReady === '1', null, { timeout: 30000 })
+// exercise rebuild (mode switch) and resize
+await page.evaluate(async () => { await window.__hero.rebuild('title'); await window.__hero.rebuild('title') })
+await page.setViewportSize({ width: 900, height: 700 })
+await page.waitForTimeout(800)
+const n = await page.evaluate(() => document.querySelectorAll('.layer--title canvas').length)
+console.log('title canvases:', n)
+await browser.close()
