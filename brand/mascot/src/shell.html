@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Нетопырь в 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600&family=Unbounded:wght@500;600&display=swap">
+<style>
+[hidden]{display:none!important}
+/* Layout: the 3D view fills the page; over it the name (top left), the scene tools (top right), the animation list (left, a strip on phones) and the transport (bottom). */
+:root{
+  --bg:#13110f;                    /* warm graphite behind everything */
+  --panel:rgba(22,19,17,.72);      /* glass over the 3D view */
+  --panel-solid:#1b1815;           /* the same where blur is missing */
+  --hi:rgba(255,255,255,.07);      /* hover */
+  --line:rgba(255,240,225,.10);    /* hairlines */
+  --track:rgba(255,240,225,.18);   /* empty part of the timeline */
+  --ink:#efe9e1;                   /* text */
+  --mute:#9b9288;                  /* secondary text */
+  --accent:#ff7a1a;                /* juicy orange: what is on */
+  --on-accent:#1d0e03;             /* text on orange */
+  --f-name:"Unbounded","Arial Black",system-ui,sans-serif;
+  --f-ui:"Geologica","Segoe UI",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:14px;overflow:hidden;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
+#app{position:relative;height:100%;min-height:440px;overflow:hidden;user-select:none;-webkit-user-select:none}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab;outline:none}
+#gl.drag{cursor:grabbing}
+/* soft shade at the top and bottom edges so the text reads over any backdrop */
+.scrim{position:absolute;left:0;right:0;pointer-events:none}
+.scrim.t{top:0;height:110px;background:linear-gradient(rgba(10,8,6,.38),rgba(10,8,6,0))}
+.scrim.b{bottom:0;height:150px;background:linear-gradient(rgba(10,8,6,0),rgba(10,8,6,.32))}
+.glass{background:var(--panel);border:1px solid var(--line);border-radius:14px;-webkit-backdrop-filter:blur(14px) saturate(1.15);backdrop-filter:blur(14px) saturate(1.15)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.glass{background:var(--panel-solid)}}
+button{font:inherit;color:inherit}
+.btn{appearance:none;border:0;background:transparent;color:var(--ink);border-radius:9px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:background .12s,color .12s}
+.btn:hover{background:var(--hi)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.btn svg{width:16px;height:16px;display:block;fill:currentColor}
+
+/* name */
+.cap{position:absolute;top:14px;left:max(16px,env(safe-area-inset-left,0px));display:grid;gap:3px;pointer-events:none;text-shadow:0 1px 12px rgba(0,0,0,.35)}
+.cap h1{margin:0;font-family:var(--f-name);font-weight:600;font-size:22px;letter-spacing:-.01em;line-height:1.1}
+.cap p{margin:0;color:var(--ink);opacity:.72;font-size:13px}
+
+/* scene tools */
+.tools{position:absolute;top:12px;right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;max-width:calc(100% - 210px)}
+.grp{display:flex;align-items:center;gap:2px;padding:3px}
+.grp .btn{height:30px;padding:0 11px;font-size:13px}
+.grp .lab{color:var(--mute);font-size:12px;padding:0 6px 0 8px}
+
+/* animation list */
+.clips{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:50%;transform:translateY(-50%);width:208px;padding:6px;display:grid;gap:2px}
+.clips h2{margin:4px 8px 6px;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.clip{justify-content:flex-start;height:34px;padding:0 10px;text-align:left;font-size:14px;width:100%}
+.clip .k{font-size:11px;color:var(--mute);width:12px;font-variant-numeric:tabular-nums}
+.clip .d{margin-left:auto;font-size:11px;color:var(--mute);font-variant-numeric:tabular-nums}
+.clip[aria-pressed="true"] .k,.clip[aria-pressed="true"] .d{color:inherit;opacity:.7}
+
+/* transport */
+.transport{position:absolute;left:50%;transform:translateX(-50%);bottom:max(14px,env(safe-area-inset-bottom,0px));width:min(980px,calc(100% - 2 * max(16px, env(safe-area-inset-left,0px))));
+  display:grid;grid-template-columns:auto auto auto minmax(0,1fr) auto auto auto;align-items:center;gap:6px;padding:6px 10px 6px 6px}
+.transport .btn.ic{width:36px;height:36px}
+.transport .btn.play{width:42px;height:42px;background:var(--accent);color:var(--on-accent);border-radius:12px}
+.transport .btn.play:hover{filter:brightness(1.08)}
+.transport .btn.play svg{width:18px;height:18px}
+.frame{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums;white-space:nowrap;min-width:150px;text-align:right}
+.frame b{color:var(--ink);font-weight:500}
+.speed{display:flex;gap:2px;padding-left:6px;border-left:1px solid var(--line);margin-left:4px}
+.speed .btn{height:30px;padding:0 8px;font-size:12px;font-variant-numeric:tabular-nums}
+.loop{height:30px;padding:0 9px;font-size:12px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent;margin:0 6px;cursor:pointer;--p:0%}
+input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:linear-gradient(90deg,var(--accent) 0 var(--p),var(--track) var(--p) 100%)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-5px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 4px rgba(255,122,26,.28)}
+input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--track)}
+input[type=range]::-moz-range-progress{height:4px;border-radius:2px;background:var(--accent)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border:0;border-radius:50%;background:var(--ink);box-shadow:0 0 0 4px rgba(255,122,26,.28)}
+
+.hint{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(max(14px,env(safe-area-inset-bottom,0px)) + 64px);margin:0;font-size:12px;color:var(--ink);opacity:.62;white-space:nowrap;pointer-events:none;text-shadow:0 1px 10px rgba(0,0,0,.5);transition:opacity .6s}
+.hint.dim{opacity:0}
+.nogl{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:var(--mute)}
+
+@media (max-width:1100px){.hint{display:none}}
+@media (max-width:760px){
+  .cap h1{font-size:18px}.cap p{font-size:12px}
+  .tools{top:58px;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));max-width:none;justify-content:flex-start}
+  .grp .btn{height:28px;padding:0 9px;font-size:12px}.grp .lab{display:none}
+  .dock{position:absolute;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:max(14px,env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px}
+  .clips{position:static;transform:none;width:auto;display:flex;overflow-x:auto;scrollbar-width:none;padding:4px}
+  .clips::-webkit-scrollbar{display:none}
+  .clips h2{display:none}.clip{width:auto;flex:0 0 auto;height:32px;font-size:13px}.clip .d{display:none}
+  .transport{position:static;transform:none;width:auto;grid-template-columns:auto auto auto minmax(0,1fr);grid-template-areas:"play prev next frame" "bar bar bar bar" "speed speed speed speed";gap:4px 6px;padding:6px}
+  .transport .play{grid-area:play}.transport .prev{grid-area:prev}.transport .next{grid-area:next}.frame{grid-area:frame;min-width:0}
+  input[type=range]{grid-area:bar;margin:0}
+  .tail{grid-area:speed;display:flex;justify-content:space-between}
+  .speed{border-left:0;margin-left:0;padding-left:0}
+}
+@media (min-width:761px){.tail,.dock{display:contents}}
+@media (prefers-reduced-motion:reduce){.btn,.hint{transition:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="gl" tabindex="0" aria-label="Нетопырь в 3D: тяни, чтобы вращать, колесо — ближе"></canvas>
+  <div class="scrim t"></div><div class="scrim b"></div>
+  <div class="cap"><h1>Нетопырь</h1><p>звёздные крылья · холодные глаза</p></div>
+  <div class="tools">
+    <div class="grp glass" role="group" aria-label="Фон"><span class="lab">фон</span>
+      <button type="button" class="btn" data-bg="studio" aria-pressed="true">Студия</button>
+      <button type="button" class="btn" data-bg="sky" aria-pressed="false">Небо</button>
+      <button type="button" class="btn" data-bg="night" aria-pressed="false">Ночь</button></div>
+    <div class="grp glass">
+      <button type="button" class="btn" id="followBtn" aria-pressed="true" title="Голова поворачивается за камерой (G)">Следит за тобой</button>
+      <button type="button" class="btn" id="spinBtn" aria-pressed="false" title="Камера сама облетает мышь (A)">Облёт</button>
+      <button type="button" class="btn" id="resetBtn" title="Вернуть камеру (R)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 1 1-5.2 3.7l1.4.5A4 4 0 1 0 8 4v2L4.8 3.2 8 .5z"/></svg>Вид</button></div>
+  </div>
+  <p class="hint" id="hint">тяни — вращать · колесо — ближе · Shift + тяни — сдвинуть · двойной клик — центр сюда · пробел — пауза · ← → — кадр</p>
+  <div class="dock">
+  <nav class="clips glass" aria-label="Анимации"><h2>Анимации</h2><div id="clipList" style="display:contents"></div></nav>
+  <div class="transport glass" role="group" aria-label="Проигрывание">
+    <button type="button" class="btn play" id="playBtn" aria-label="Пауза" title="Пауза (пробел)"><svg viewBox="0 0 16 16" aria-hidden="true" id="playIco"></svg></button>
+    <button type="button" class="btn ic prev" id="prevBtn" aria-label="Кадр назад" title="Кадр назад (←)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3h2v10H3zM13 3v10L6 8z"/></svg></button>
+    <button type="button" class="btn ic next" id="nextBtn" aria-label="Кадр вперёд" title="Кадр вперёд (→)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11 3h2v10h-2zM3 3v10l7-5z"/></svg></button>
+    <input type="range" id="bar" min="0" max="119" step="1" value="0" aria-label="Кадр">
+    <div class="frame" id="frameLab" aria-live="off"><b>1</b> / 120 · 0,00 с</div>
+    <div class="tail">
+      <div class="speed" role="group" aria-label="Скорость">
+        <button type="button" class="btn" data-sp="0.1" aria-pressed="false">×0,1</button>
+        <button type="button" class="btn" data-sp="0.25" aria-pressed="false">×0,25</button>
+        <button type="button" class="btn" data-sp="0.5" aria-pressed="false">×0,5</button>
+        <button type="button" class="btn" data-sp="1" aria-pressed="true">×1</button></div>
+      <button type="button" class="btn loop" id="loopBtn" aria-pressed="true" title="По кругу (L)">по кругу</button>
+    </div>
+  </div>
+  </div>
+  <div class="nogl" id="nogl" hidden>Здесь не запускается WebGL 2, а без него 3D не показать. Открой страницу в свежем Chrome, Safari или Firefox.</div>
+</div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {ShaderPass} from 'three/addons/postprocessing/ShaderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
