@@ -1,7 +1,7 @@
 // Все игры сайта: одна правка здесь меняет и главную, и страницу /games.
 // Карточки вписываются в HTML при сборке (vite.config.ts → плагин games), так что они есть и без JS.
 // Картинки и видео лежат в public/covers/. Видео: mp4 (H.264, без звука) обязательно, webm по желанию.
-// Тексты в [квадратных скобках] — заглушки до ответа Славы.
+// Пока здесь только вышедшие игры: Corner Guy, Frigate Naval Battles и Big Big Kick Слава попросит добавить сам.
 
 export interface Game {
   id: string
@@ -25,7 +25,7 @@ export const games: Game[] = [
     id: 'pumpkin-night',
     name: 'Pumpkin Night',
     href: 'https://genex.games/snowball',
-    line: 'Play on genex.games',
+    line: 'Play in browser',
     cover: 'pumpkin-night.webp',
     coverW: 1600,
     coverH: 900,
@@ -37,7 +37,7 @@ export const games: Game[] = [
     id: 'hollowgrin',
     name: 'Hollowgrin',
     href: 'https://genex.games/hollowgrin',
-    line: 'Play on genex.games',
+    line: 'Play in browser',
     cover: 'hollowgrin.webp',
     coverW: 1260,
     coverH: 1000,
@@ -48,38 +48,12 @@ export const games: Game[] = [
     id: 'fold-the-duo',
     name: 'Fold the Duo',
     href: 'https://genex.games/foldtheduo',
-    line: 'Play on genex.games',
+    line: 'Play in browser',
     cover: 'fold-the-duo.webp',
     coverW: 1600,
     coverH: 900,
     alt: 'Fold the Duo: two hands holding a folding phone with a broken screen above its open box',
     video: { mp4: 'fold-the-duo.mp4' },
-  },
-  {
-    id: 'corner-guy',
-    name: 'Corner Guy',
-    href: '',
-    line: '[One line about Corner Guy]',
-    cover: 'corner-guy.webp',
-    coverW: 1600,
-    coverH: 929,
-    alt: 'Corner Guy: a cartoon boxing ring and the main menu',
-  },
-  {
-    id: 'frigate',
-    name: 'Frigate Naval Battles',
-    href: '',
-    line: '[One line about Frigate Naval Battles]',
-    cover: '',
-    alt: '',
-  },
-  {
-    id: 'big-big-kick',
-    name: 'Big Big Kick',
-    href: '',
-    line: '[One line about Big Big Kick]',
-    cover: '',
-    alt: '',
   },
 ]
 
@@ -94,7 +68,4 @@ export const gamesPage: { id: string; size: 'feature' | 'wide' | 'narrow' | 'car
   { id: 'pumpkin-night', size: 'feature' },
   { id: 'hollowgrin', size: 'wide' },
   { id: 'fold-the-duo', size: 'narrow' },
-  { id: 'corner-guy', size: 'feature' },
-  { id: 'frigate', size: 'card' },
-  { id: 'big-big-kick', size: 'card' },
 ]
