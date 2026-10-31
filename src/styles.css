@@ -1,195 +1,656 @@
+/* Slava Volkov — the site. Colours of both themes are the tokens below (day = lights on, night = lights off);
+   the switch in the header flips html[data-theme]. Every number here is from the final mockup. */
+@import '@fontsource-variable/inter-tight/wght.css';
+
+:root {
+  --font: 'Inter Tight Variable', 'Inter Tight', system-ui, sans-serif;
+  --gutter: max(16px, 5vw);
+  --head-h: 96px;
+  --focus: #ff8a2a;
+  --fade: 0.6s ease;
+
+  /* день */
+  --bg: #f2efe8;
+  --bg-clear: rgba(242, 239, 232, 0);
+  --fg: #121212;
+  --sub: #5b5850;
+  --surf: #e5e1d6;
+  --accent: #b5520f;
+  --rule: #121212;
+  --head-bg: rgba(242, 239, 232, 0.86);
+  --cta-bg: #121212;
+  --cta-fg: #f2efe8;
+  --track: #121212;
+  --knob: #f2efe8;
+  --knob-x: 25px;
+  --band: #121212;
+  --band-fg: #f2efe8;
+  --band-sub: #a8a397;
+  --band-chip: rgba(242, 239, 232, 0.12);
+  --night: 0; /* звёзды, свечение имени и ореол мыши */
+  --glow: 0 0 0 rgba(156, 202, 255, 0);
+  color-scheme: light;
+}
+:root[data-theme='night'] {
+  --bg: #060811;
+  --bg-clear: rgba(6, 8, 17, 0);
+  --fg: #e6ecfa;
+  --sub: #9aa6bf;
+  --surf: #111728;
+  --accent: #ff8a2a;
+  --rule: rgba(200, 214, 255, 0.22);
+  --head-bg: rgba(6, 8, 17, 0.82);
+  --cta-bg: #ff8a2a;
+  --cta-fg: #140a02;
+  --track: #2a3046;
+  --knob: #9ccaff;
+  --knob-x: 3px;
+  --band: #121a30;
+  --band-fg: #e6ecfa;
+  --band-sub: #9aa6bf;
+  --band-chip: rgba(230, 236, 250, 0.1);
+  --night: 1;
+  --glow: 0 0 34px rgba(156, 202, 255, 0.35);
+  color-scheme: dark;
+}
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
-
-html,
+html {
+  scroll-behavior: smooth;
+  background: var(--bg);
+  transition: background-color var(--fade);
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
 body {
+  position: relative; /* .bat-layer covers the whole page */
   margin: 0;
-  padding: 0;
-  height: 100%;
-  background: #e4e2dd;
-  overflow: hidden;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color var(--fade), color var(--fade);
 }
-
-.hero {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  height: 100svh;
-  overflow: hidden;
-  isolation: isolate;
+img {
+  display: block;
+  max-width: 100%;
 }
-
-/* Three independent layers, back to front: world → paper (+UI) → floating title. */
-.layer {
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+.skip {
   position: absolute;
-  inset: 0;
+  z-index: 50;
+  left: 16px;
+  top: -60px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--fg);
+  color: var(--bg);
+  font-weight: 600;
+  text-decoration: none;
+}
+.skip:focus {
+  top: 16px;
+}
+.wrap {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+section[id] {
+  scroll-margin-top: 98px;
 }
 
-.layer--world {
-  z-index: 1;
-}
-
-/* Until the sky's first frame (and wherever WebGL is unavailable) the two holes show a flat
-   sky tone instead of bare paper-coloured recesses. Only once the sheet with its holes exists,
-   so the page never flashes blue before the paper arrives. */
-.hero:has(.pp-sheet) > .layer--world {
-  background: #8f9cb4;
-}
-
-.layer--paper {
-  z-index: 2;
-}
-
-.layer--title {
-  z-index: 3;
-  pointer-events: none;
-}
-
-/* Version 2 (index.html): full-bleed sky behind the title, no paper. */
-body.v-sky,
-.v-sky .hero {
-  background: #6f86a8;
-}
-
-.layer--sky {
-  z-index: 1;
-}
-
-/* With the chromatic aberration on (post.aberration), the title and front-sky mounts hand their
-   z-index to their two canvases and stop being stacking contexts (core/channel-split.ts):
-   the blend modes must reach the layers below. The order stays the same. */
-
-/* The sky layers marked front: true — nearest clouds, over the title; never catch the pointer. */
-.layer--skyFront {
-  z-index: 4;
-  pointer-events: none;
-}
-
-/* Nav + tagline (version 2), over the title and the nearest clouds. Only the links catch the pointer. */
-.layer--overlay {
-  z-index: 5;
-  pointer-events: none;
-}
-
-/* ── Version 2 scrolls between screens (src/core/scroll.ts) ──────────────────────────────────────
-   The document scrolls natively (wheel, touch, keys, #hash, Back), but nothing on screen moves with
-   it: the stage is fixed and every screen is drawn inside it from the smoothed scroll position.
-   The track below the stage only gives the document its length: one stop per screen.
-   overflow-anchor: none — when the stops change length (scroll.stops written by the script, the
-   tuner, a resize into the mobile config) core/scroll.ts alone keeps the page at the same place of
-   the film; the browser's own scroll anchoring (in the browsers that have it) would move it as well,
-   and differently in each. */
-html.v-sky {
-  height: auto;
-  overflow: hidden auto;
-  overscroll-behavior-y: none;
-  overflow-anchor: none;
-  scrollbar-width: none;
-}
-
-html.v-sky::-webkit-scrollbar {
-  display: none;
-}
-
-html.v-sky body {
-  height: auto;
-  overflow: visible;
-  overflow-anchor: none;
-}
-
-/* lvh, not svh / dvh: the stage keeps its size when a phone's URL bar slides away, so no canvas is
-   reallocated in the middle of a gesture. Controls stay inside 100svh (Frame.scroll.safeH). */
-.v-sky .hero {
+/* ---------- шапка ---------- */
+.head {
   position: fixed;
+  z-index: 40;
   top: 0;
   left: 0;
-  height: 100vh;
-  height: 100lvh;
+  right: 0;
+  height: var(--head-h);
+  box-sizing: content-box;
+  border-bottom: 2px solid var(--rule);
+  background: var(--head-bg);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 0 var(--gutter);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--fg);
+  transition: background-color var(--fade), border-color var(--fade), color var(--fade);
+}
+.head a {
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.72;
+  transition: opacity 0.2s;
+}
+.head a:hover {
+  opacity: 1;
+}
+.head .head__name {
+  opacity: 1;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.head__row {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.head__nav {
+  display: flex;
+  gap: 28px;
+}
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: 500 15px var(--font);
+  cursor: pointer;
+}
+.switch__track {
+  position: relative;
+  width: 52px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--track);
+  transition: background-color 0.3s ease;
+}
+.switch__knob {
+  position: absolute;
+  top: 3px;
+  left: var(--knob-x);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--knob);
+  transition: left 0.25s ease, background-color 0.3s ease;
+}
+@media (max-width: 640px) {
+  .switch__label {
+    display: none;
+  }
+  .head__row {
+    gap: 14px;
+  }
+  .head__nav {
+    gap: 14px;
+    font-size: 14px;
+  }
 }
 
-/* --scroll-travel: scroll.travel (sky.config.ts), written by core/scroll.ts on <html>; --stop-travel:
-   scroll.stops[id of the NEXT stop], written by core/scroll.ts on each stop that has its own length */
-.v-sky .scroll-stop {
-  height: calc(var(--stop-travel, var(--scroll-travel, 0.75)) * 100vh);
-  height: calc(var(--stop-travel, var(--scroll-travel, 0.75)) * 100lvh);
+/* ---------- хиро ---------- */
+.hero {
+  position: relative;
+  overflow-x: clip;
+  height: clamp(640px, 100vh, 1100px);
 }
-
-.v-sky .scroll-stop:last-child {
-  height: 100vh;
-  height: 100lvh;
-}
-
-/* Stacking on the stage, back → front: sky 1, title 3, skyFront 4, tagline 5, veil 6, slab 7,
-   projects 8, about 9, aboutText 10, nav 11. The overlay mount stops being a stacking context so that its
-   two roots (sky-overlay/overlay.css: .so-root--tag 5, .so-root--nav 11) take their own places in that order:
-   the veil rises over the tagline, the nav stays on top of everything. */
-.v-sky .layer--overlay {
-  z-index: auto;
-}
-
-/* The cloud curtain, the whiteout and the void (the third sky-layers canvas). */
-.layer--veil {
-  z-index: 6;
-  pointer-events: none;
-}
-
-/* The project screen hanging in the void. */
-.layer--slab {
-  z-index: 7;
-  pointer-events: none;
-}
-
-/* Project texts and arrows on the slab's plane. Only its controls catch the pointer. */
-.layer--projects {
-  z-index: 8;
-  pointer-events: none;
-}
-
-/* ABOUT: black concrete 3D letters and photo cards in the void (transparent around them). */
-.layer--about {
-  z-index: 9;
-  pointer-events: none;
-}
-
-/* ABOUT: the notes (DOM text on the sheet, placed by the same camera). */
-.layer--aboutText {
-  z-index: 10;
-  pointer-events: none;
-}
-
-/* Opening straight on a later screen (a link to #projects, a reload there, a restored scroll): until
-   the veil is in (html[data-in~='veil'], core/hero.ts: it has drawn its first frame), a flat sheet of
-   the void's colour stands where the veil will be — the sky must not flash before the projects.
-   data-section (core/hero.ts; already before the first frame, from index.html, on a #stop link, a
-   reload or a Back that rebuilt the page), :target where it is not set yet — and
-   data-veiled (core/hero.ts, decided by sky.ts) a page that opens part of the way down, where the
-   clouds already hide the title: the bare title must not flash before them either.
-   The about screen (opened on #about / #about-end, or reloaded anywhere from pos 1.5 on —
-   data-section 2 and 3) needs nothing of its own: ABOUT stands in the same warm void the veil draws
-   (its canvas is transparent around the letters and cards), so the same sheet stands in until the
-   veil is in, and then the void shows while the about layer is still coming (its objects simply
-   appear). (Before 2026-10-12 a near-black about sheet stood here until the about layer was in.)
-   html[data-hero-full] ends it in any case (a layer that never came).
-   --veil-color: veil.color, set by sky.ts; the fallback is the same colour. */
-html.v-sky:not([data-hero-full]):not([data-in~='veil']):is(:not([data-section]):has(.scroll-stop:not(:first-child):target), [data-section]:not([data-section='0']), [data-veiled]) .hero::after {
-  content: '';
+.hero__stars {
   position: absolute;
   inset: 0;
-  z-index: 6;
-  background: var(--veil-color, #f1ded0);
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: var(--night);
+  transition: opacity 0.9s ease;
+}
+.hero__text {
+  position: absolute;
+  z-index: 1;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: max(40px, min(9vh, 96px));
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  pointer-events: none;
+}
+.hero__title {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(64px, 11.5vw, 196px);
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+  text-shadow: var(--glow);
+  transition: text-shadow 0.9s ease;
+}
+.hero__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.hero__sub {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 500;
+  color: var(--sub);
+  transition: color var(--fade);
 }
 
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
+/* ---------- кнопки ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
   border: 0;
+  border-radius: 999px;
+  font-family: var(--font);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn--cta {
+  pointer-events: auto;
+  min-height: 52px;
+  padding: 0 28px;
+  background: var(--cta-bg);
+  color: var(--cta-fg);
+  font-size: 16px;
+  transition: background-color var(--fade), color var(--fade);
+}
+.btn--more,
+.btn--less {
+  gap: 12px;
+  min-height: 56px;
+  padding: 0 30px;
+  font-size: 17px;
+}
+.btn--more {
+  background: var(--fg);
+  color: var(--bg);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
+}
+.btn--less {
+  background: var(--surf);
+  color: var(--fg);
+}
+.feat:focus-visible,
+.card:focus-visible,
+.btn--more:focus-visible,
+.btn--less:focus-visible {
+  outline-offset: 6px;
+}
+
+/* ---------- игры ---------- */
+.games {
+  padding-top: 200px;
+}
+.games__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 64px;
+}
+.games__title {
+  margin: 0;
+  font-size: clamp(56px, 8vw, 128px);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+}
+.games__lede {
+  margin: 0 0 10px;
+  max-width: 22em;
+  font-size: 18px;
+  line-height: 1.5;
+  color: var(--sub);
+}
+.feat {
+  position: relative;
+  display: block;
+  aspect-ratio: 21 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surf);
+  color: #fff;
+  text-decoration: none;
+}
+@media (max-width: 760px) {
+  .feat {
+    aspect-ratio: 4 / 5;
+  }
+}
+.feat img,
+.card__im img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.feat:hover img,
+.card:hover .card__im img {
+  transform: scale(1.03);
+}
+.feat__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.72) 100%);
+}
+.feat__body {
+  position: absolute;
+  left: clamp(20px, 3vw, 48px);
+  right: clamp(20px, 3vw, 48px);
+  bottom: clamp(20px, 3vw, 44px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.feat__text {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.badge {
+  align-self: flex-start;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #ff8a2a;
+  color: #140a02;
+  font-size: 13px;
+  font-weight: 600;
+}
+.feat__name {
+  font-size: clamp(40px, 5.6vw, 88px);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+}
+.feat__line {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.86);
+}
+.feat__play {
+  display: inline-flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 26px;
+  border-radius: 999px;
+  background: #fff;
+  color: #121212;
+  font-size: 16px;
+  font-weight: 600;
+}
+.row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 40px;
+  margin-top: 72px;
+}
+@media (max-width: 900px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 64px;
+  }
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  color: inherit;
+  text-decoration: none;
+}
+.card__im {
+  display: block;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surf);
+  transition: background-color var(--fade);
+}
+.card__im--ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: var(--sub);
+}
+.card__name {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.card__line {
+  margin-top: -10px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--sub);
+}
+.peek {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  margin-top: 72px;
+}
+.peek .row {
+  margin-top: 0;
+}
+.peek__fade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, var(--bg-clear) 0%, var(--bg) 80%);
+}
+.peek__btn {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  display: flex;
+  justify-content: center;
+}
+.peek[hidden],
+#more[hidden] {
+  display: none;
+}
+.more__less {
+  display: flex;
+  justify-content: center;
+  margin-top: 64px;
+}
+
+/* ---------- обо мне ---------- */
+.wrap--about {
+  max-width: 1280px;
+}
+.about {
+  padding-top: 260px;
+}
+.about__hi {
+  margin: 0;
+  font-size: clamp(36px, 5.4vw, 84px);
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+}
+.about__hi img {
+  display: inline-block;
+  width: 0.95em;
+  height: 0.95em;
+  border-radius: 50%;
+  object-fit: cover;
+  vertical-align: -0.14em;
+}
+.accent {
+  color: var(--accent);
+  transition: color var(--fade);
+}
+.about__two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 64px;
+  margin-top: 80px;
+}
+@media (max-width: 900px) {
+  .about__two {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+}
+.about__bio {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.6;
+  color: var(--sub);
+}
+.facts {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-size: 18px;
+}
+.facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.facts dt {
+  color: var(--sub);
+}
+.facts dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* ---------- контакты: тёмная полоса ---------- */
+.contact {
+  margin-top: 220px;
+  background: var(--band);
+  color: var(--band-fg);
+  transition: background-color var(--fade), color var(--fade);
+}
+.contact__in {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 180px var(--gutter) 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  text-align: center;
+}
+.contact__title {
+  margin: 0;
+  font-size: clamp(64px, 9vw, 144px);
+  font-weight: 800;
+  line-height: 0.86;
+  letter-spacing: -0.055em;
+}
+.contact__lede {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.5;
+  color: var(--band-sub);
+}
+.contact__mail {
+  margin-top: 24px;
+  font-size: clamp(32px, 4vw, 60px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+}
+.link {
+  color: inherit;
+  text-decoration: none;
+}
+.link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.14em;
+  text-decoration-thickness: 2px;
+}
+.contact__pills {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 24px;
+  border-radius: 999px;
+  background: var(--band-chip);
+  color: inherit;
+  text-decoration: none;
+  font-size: 17px;
+  font-weight: 600;
+  transition: transform 0.2s ease;
+}
+.pill:hover {
+  transform: translateY(-2px);
+}
+.foot {
+  max-width: 1296px;
+  margin: 0 auto;
+  padding: 0 var(--gutter) 48px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 14px;
+  color: var(--band-sub);
+}
+.foot .link {
+  padding: 4px 0;
+}
+
+/* ---------- Нетопырь ---------- */
+.bat-layer {
+  position: absolute;
+  z-index: 30; /* над разделами, под шапкой */
+  inset: 0;
+  overflow: clip;
+  pointer-events: none;
+}
+.bat,
+.bat-halo {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  will-change: transform;
+  transform: translate3d(-9999px, 0, 0);
+}
+.bat {
+  display: block;
+  width: 440px;
+  height: 340px;
+}
+.bat-halo {
+  z-index: -1;
+  width: 560px;
+  height: 560px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(120, 156, 230, 0.2) 0%, rgba(120, 156, 230, 0.07) 38%, rgba(120, 156, 230, 0) 68%);
+  opacity: var(--night);
+  transition: opacity 0.9s ease;
 }

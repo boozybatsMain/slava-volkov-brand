@@ -64,10 +64,10 @@ for(int i=0;i<NUM_HEMI_LIGHTS;i++){float hd=dot(N,hemisphereLights[i].direction)
 #endif
 return t;}`;
 function MEM_COMPILE(sh){Object.assign(sh.uniforms,this.userData.u);
-  sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nattribute vec2 aRest;attribute float aBone,aFib;varying vec2 vRest;varying float vBone,vFib;')
-    .replace('#include <begin_vertex>','#include <begin_vertex>\nvRest=aRest;vBone=aBone;vFib=aFib;');
+  sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nattribute vec2 aRest;attribute float aBone,aFib;varying vec2 vRest;varying float vBone,vFib,vSide;')
+    .replace('#include <begin_vertex>','#include <begin_vertex>\nvRest=aRest;vBone=aBone;vFib=aFib;vSide=position.z<0.?-1.:1.;');
   sh.fragmentShader=sh.fragmentShader
-    .replace('#include <common>','#include <common>\nuniform vec3 uTrans;uniform float uVein,uStars,uTime,uPx;uniform vec2 uSky;varying vec2 vRest;varying float vBone,vFib;'+GLSL_NOISE+GLSL_SKY)
+    .replace('#include <common>','#include <common>\nuniform vec3 uTrans;uniform float uVein,uStars,uTime,uPx;uniform vec2 uSky;varying vec2 vRest;varying float vBone,vFib,vSide;'+GLSL_NOISE+GLSL_SKY)
     .replace('#include <lights_pars_begin>','#include <lights_pars_begin>'+GLSL_TRANS)
     .replace('#include <color_fragment>',`#include <color_fragment>
       // elastic fibres: fine lines across each membrane (span-wise in the arm wing, finger to finger in the hand wing)
@@ -82,8 +82,8 @@ function MEM_COMPILE(sh){Object.assign(sh.uniforms,this.userData.u);
       outgoingLight+=uTrans*transLight(normal)*thick*mix(.3,1.,nb)*(.55+.45*thin)*(1.-.4*vmask)*(1.-.97*smoothstep(0.,.5,uStars));
       // the night sky through the wing: dimmer light, a faint cold rim, stars fading at grazing angles and near the bones
       if(uStars>0.){float ks=smoothstep(0.,.5,uStars);outgoingLight*=1.-.85*ks;outgoingLight+=vec3(.012,.022,.04)*pow(1.-nv,2.)*ks;
-        vec2 fp=gl_FragCoord.xy/uPx;float win=uStars*smoothstep(.06,.5,nv)*mix(.5,1.,nb);
-        outgoingLight+=win*nightSky(fp,uSky,uTime);}
+        vec2 fp=vec2(vRest.x,vRest.y*vSide)*70.+vec2(400.,300.);float win=uStars*smoothstep(.06,.5,nv)*mix(.5,1.,nb);
+        outgoingLight+=win*nightSky(fp,vec2(0.),uTime);}
       #include <opaque_fragment>`)}
 function FUR_COMPILE(sh){Object.assign(sh.uniforms,this.userData.u);
   sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nattribute float aFur;varying float vFur;').replace('#include <begin_vertex>','#include <begin_vertex>\nvFur=aFur;');
