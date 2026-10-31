@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="day">
+<html lang="en" data-theme="day" data-mode="auto">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -7,9 +7,16 @@
     <meta name="description" content="Slava Volkov, independent game developer: Pumpkin Night, Hollowgrin, Fold the Duo and more." />
     <meta name="theme-color" content="#f2efe8" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23121212'/%3E%3Ccircle cx='5.5' cy='7' r='1.3' fill='%239ccaff'/%3E%3Ccircle cx='10.5' cy='7' r='1.3' fill='%239ccaff'/%3E%3C/svg%3E" />
-    <!-- Тема до первого кадра: выбор выключателя запоминается (src/main.ts → theme), без мигания дневной темы ночью. -->
+    <!-- Тема до первого кадра: по умолчанию «авто» (как у устройства), ручной выбор выключателя запоминается
+         (src/main.ts → выключатель). Так ночью нет мигания дневной темы. -->
     <script>
-      try { if (localStorage.getItem('sv-theme') === 'night') document.documentElement.dataset.theme = 'night' } catch (e) {}
+      (function () {
+        var d = document.documentElement, m = null
+        try { m = localStorage.getItem('sv-theme') } catch (e) {}
+        if (m !== 'day' && m !== 'night') m = 'auto'
+        d.dataset.mode = m
+        d.dataset.theme = m === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'day') : m
+      })()
     </script>
   </head>
   <body>
@@ -24,9 +31,9 @@
           <a href="#about">About</a>
           <a href="#contact">Contact</a>
         </nav>
-        <button class="switch" id="switch" type="button" aria-pressed="true" aria-label="Lights">
+        <button class="switch" id="switch" type="button" aria-pressed="mixed" aria-label="Lights: auto, as on your device">
           <span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span>
-          <span class="switch__label" aria-hidden="true">Lights on</span>
+          <span class="switch__label" aria-hidden="true">Auto</span>
         </button>
       </div>
     </header>
@@ -39,7 +46,7 @@
           <h1 class="hero__title" data-bat-avoid>Slava<br />Volkov</h1>
           <div class="hero__row">
             <p class="hero__sub" data-bat-avoid>Independent game developer</p>
-            <a class="btn btn--cta" href="#games" data-bat-avoid>See the games</a>
+            <a class="btn btn--cta" href="#games" data-bat-avoid>See the games<svg width="20" height="20" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg></a>
           </div>
         </div>
         <!-- Ниже есть ещё: тихий индикатор по центру внизу, пропадает после первой прокрутки. -->
@@ -62,16 +69,9 @@
 
       <section class="about wrap wrap--about" id="about" aria-label="About">
         <p class="about__hi" data-bat-avoid>Hi, I’m Slava <img src="/avatar.webp" width="1254" height="1254" loading="lazy" alt="Slava's avatar: his head as a pixel mosaic on a blue sky" /> I make small games where something always goes a little <span class="accent">sideways</span>.</p>
-        <div class="about__two">
-          <div class="about__bio" data-bat-avoid>
-            <p>I make games with an unusual idea at the core: a mechanic or a setting you haven’t quite met before.</p>
-            <p>I like them minimal and easy to get into, with a challenge that is hard but always fair. Most of my time goes into the small details, the ones that pull you into the atmosphere and keep you there.</p>
-          </div>
-          <dl class="facts" data-bat-avoid>
-            <div><dt>Makes games in</dt><dd>Whatever engine fits the game</dd></div>
-            <div><dt>Plays at</dt><dd><a class="link link--u" href="https://genex.games" target="_blank" rel="noopener">genex.games</a></dd></div>
-            <div><dt>Mascot</dt><dd>Netopyr, the bat on this page</dd></div>
-          </dl>
+        <div class="about__bio" data-bat-avoid>
+          <p>I make games with an unusual idea at the core: a mechanic or a setting you haven’t quite met before.</p>
+          <p>I like them minimal and easy to get into, with a challenge that is hard but always fair. Most of my time goes into the small details, the ones that pull you into the atmosphere and keep you there.</p>
         </div>
       </section>
 
@@ -79,12 +79,15 @@
         <div class="contact__in">
           <h2 class="contact__title" id="contact-title" data-bat-avoid>Say hi.</h2>
           <p class="contact__lede" data-bat-avoid>Questions, collabs, or a bug you found. I read everything.</p>
-          <a class="contact__mail link" href="mailto:" data-bat-avoid>[name]@slavavolkov.com</a>
-          <div class="contact__pills" data-bat-avoid>
-            <a class="pill" href="https://x.com/buzzybats" target="_blank" rel="noopener"><span class="pill__site">X</span> @buzzybats <svg width="22" height="22" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 12L12 4M6 4h6v6" stroke="currentColor" stroke-width="1.6" /></svg></a>
-            <a class="pill" href="https://www.instagram.com/buzzy_bats" target="_blank" rel="noopener"><span class="pill__site">Instagram</span> @buzzy_bats <svg width="22" height="22" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 12L12 4M6 4h6v6" stroke="currentColor" stroke-width="1.6" /></svg></a>
-            <a class="pill" href="https://www.tiktok.com/@buzzybats" target="_blank" rel="noopener"><span class="pill__site">TikTok</span> @buzzybats <svg width="22" height="22" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 12L12 4M6 4h6v6" stroke="currentColor" stroke-width="1.6" /></svg></a>
-            <a class="pill" href="https://www.youtube.com/@buzzybats" target="_blank" rel="noopener"><span class="pill__site">YouTube</span> @buzzybats <svg width="22" height="22" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 12L12 4M6 4h6v6" stroke="currentColor" stroke-width="1.6" /></svg></a>
+          <a class="contact__mail link" href="mailto:hello@slavavolkov.com" data-bat-avoid>hello@slavavolkov.com</a>
+          <div class="social" data-bat-avoid>
+            <span class="social__handle">@buzzybats</span>
+            <ul class="social__icons">
+              <li><a class="social__icon" href="https://x.com/buzzybats" target="_blank" rel="noopener" aria-label="@buzzybats on X" title="X"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.65l-5.21-6.82-5.97 6.82H1.68l7.73-8.84L1.25 2.25h6.83l4.71 6.23zm-1.16 17.52h1.83L7.08 4.13H5.12z" /></svg></a></li>
+              <li><a class="social__icon" href="https://www.instagram.com/buzzybats" target="_blank" rel="noopener" aria-label="@buzzybats on Instagram" title="Instagram"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="currentColor" stroke-width="2" /><circle cx="12" cy="12" r="4.3" stroke="currentColor" stroke-width="2" /><circle cx="17.6" cy="6.4" r="1.3" fill="currentColor" /></svg></a></li>
+              <li><a class="social__icon" href="https://www.tiktok.com/@buzzybats" target="_blank" rel="noopener" aria-label="@buzzybats on TikTok" title="TikTok"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.53.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" /></svg></a></li>
+              <li><a class="social__icon" href="https://www.youtube.com/@buzzybats" target="_blank" rel="noopener" aria-label="@buzzybats on YouTube" title="YouTube"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.2 3.6z" /></svg></a></li>
+            </ul>
           </div>
         </div>
         <footer class="foot" data-bat-avoid>

@@ -17,7 +17,6 @@ import { qF, PERCH_Y } from '../../brand/mascot/netopyr.js'
 const C = site.bat
 type Mode = 'hang' | 'takeoff' | 'fly'
 type Pt = { x: number; y: number }
-type Rect = { l: number; t: number; r: number; b: number }
 type RouteKind = 'glide' | 'loop' | 'hover'
 
 // clip indices in brand/mascot/src/clips.js
@@ -49,8 +48,7 @@ export class SiteBat {
   private route: Pt[] = []
   private kind: RouteKind = 'glide'
   private hoverLeft = 0
-  private lastKind: RouteKind | null = null
-  private planAt = 0
+    private planAt = 0
 
   constructor(private canvas: HTMLCanvasElement, private halo: HTMLElement | null, private head: HTMLElement) {
     this.stage = new Stage(canvas, { look: C.look, shells: C.shells, glow: C.glow, maxPixelRatio: C.maxPixelRatio })
@@ -98,41 +96,89 @@ export class SiteBat {
   }
 
   // ---------- the planner ----------
+  //
+  // The free space is a grid over the visible part of the page (cells of C.cell px, in page coordinates).
+  // A cell is free when it is inside the screen margins and outside every [data-bat-avoid] box grown by
+  // avoidX / avoidY, so narrow strips (the 72 px between the game cards, the margins) stay open. Each cell
+  // also knows how far it is from the nearest wall. A route is a cheapest path over the free cells
+  // (Dijkstra, with walls made expensive so he keeps to the middle of a corridor), straightened where the
+  // line of sight allows, to a target chosen in the part of the screen he has visited least.
 
-  /** The flyable box and the obstacles, in viewport coordinates. */
-  private space() {
+  private grid: { y0: number; cols: number; rows: number; free: Uint8Array; clr: Float32Array } | null = null
+  private zoneT = new Float32Array(C.zones[0] * C.zones[1])
+
+  private build() {
+    const cs = C.cell
     const vw = this.w
     const vh = window.innerHeight
+    const vtop = window.scrollY
+    const cols = Math.ceil(vw / cs)
+    const rows = Math.ceil(vh / cs)
+    const free = new Uint8Array(cols * rows)
     const top = this.head.getBoundingClientRect().bottom + C.edgeTop
-    const box: Rect = { l: C.edgeX, t: top, r: vw - C.edgeX, b: vh - C.edgeBottom }
-    const pad = C.avoidPad
-    const obs: Rect[] = []
+    for (let j = 0; j < rows; j++) {
+      const y = (j + 0.5) * cs
+      if (y < top || y > vh - C.edgeBottom) continue
+      for (let i = 0; i < cols; i++) {
+        const x = (i + 0.5) * cs
+        if (x >= C.edgeX && x <= vw - C.edgeX) free[j * cols + i] = 1
+      }
+    }
     for (const el of document.querySelectorAll<HTMLElement>('[data-bat-avoid]')) {
       const r = el.getBoundingClientRect()
-      if (r.bottom < -pad || r.top > vh + pad || r.width === 0) continue
-      obs.push({ l: r.left - pad, t: r.top - pad, r: r.right + pad, b: r.bottom + pad })
+      if (r.width === 0 || r.bottom < -C.avoidY || r.top > vh + C.avoidY) continue
+      // every cell whose centre falls in the grown box
+      const i0 = Math.max(0, Math.ceil((r.left - C.avoidX) / cs - 0.5))
+      const i1 = Math.min(cols - 1, Math.floor((r.right + C.avoidX) / cs - 0.5))
+      const j0 = Math.max(0, Math.ceil((r.top - C.avoidY) / cs - 0.5))
+      const j1 = Math.min(rows - 1, Math.floor((r.bottom + C.avoidY) / cs - 0.5))
+      for (let j = j0; j <= j1; j++) free.fill(0, j * cols + i0, j * cols + i1 + 1)
     }
-    return { box, obs }
+    // distance to the nearest blocked cell (two-pass chamfer), in px
+    const n = cols * rows
+    const d = new Float32Array(n)
+    for (let q = 0; q < n; q++) d[q] = free[q] ? 1e6 : 0
+    const D = Math.SQRT2
+    for (let j = 0; j < rows; j++)
+      for (let i = 0; i < cols; i++) {
+        const q = j * cols + i
+        if (!d[q]) continue
+        let v = d[q]
+        if (i > 0) v = Math.min(v, d[q - 1] + 1)
+        if (j > 0) {
+          v = Math.min(v, d[q - cols] + 1)
+          if (i > 0) v = Math.min(v, d[q - cols - 1] + D)
+          if (i < cols - 1) v = Math.min(v, d[q - cols + 1] + D)
+        }
+        d[q] = v
+      }
+    for (let j = rows - 1; j >= 0; j--)
+      for (let i = cols - 1; i >= 0; i--) {
+        const q = j * cols + i
+        if (!d[q]) continue
+        let v = d[q]
+        if (i < cols - 1) v = Math.min(v, d[q + 1] + 1)
+        if (j < rows - 1) {
+          v = Math.min(v, d[q + cols] + 1)
+          if (i < cols - 1) v = Math.min(v, d[q + cols + 1] + D)
+          if (i > 0) v = Math.min(v, d[q + cols - 1] + D)
+        }
+        d[q] = v
+      }
+    const clr = new Float32Array(n)
+    for (let q = 0; q < n; q++) clr[q] = Math.min(d[q], 60) * cs - cs / 2
+    this.grid = { y0: vtop, cols, rows, free, clr }
+    return this.grid
   }
 
-  /** How far a viewport point is from the nearest obstacle (0 inside one), capped. */
-  private clearance(p: Pt, obs: Rect[]) {
-    let c = 400
-    for (const o of obs) {
-      const dx = Math.max(o.l - p.x, 0, p.x - o.r)
-      const dy = Math.max(o.t - p.y, 0, p.y - o.b)
-      c = Math.min(c, Math.hypot(dx, dy))
-      if (c === 0) break
-    }
-    return c
-  }
-
-  private pathFree(a: Pt, b: Pt, obs: Rect[]) {
-    for (let i = 1; i <= 10; i++) {
-      const u = i / 10
-      if (this.clearance({ x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u }, obs) === 0) return false
-    }
-    return true
+  /** How much room there is around a page point (px), for slowing down in narrow places. */
+  private room(p: Pt) {
+    const g = this.grid
+    if (!g) return 999
+    const i = Math.floor(p.x / C.cell)
+    const j = Math.floor((p.y - g.y0) / C.cell)
+    if (i < 0 || j < 0 || i >= g.cols || j >= g.rows) return 999
+    return Math.max(0, g.clr[j * g.cols + i])
   }
 
   private cursorNear(p: Pt) {
@@ -140,74 +186,179 @@ export class SiteBat {
     return live && Math.hypot(p.x - this.cx, p.y - this.cy) < C.cursorClear
   }
 
-  /** The best free point for a leg from `from`, preferring a leg length around `want` px. */
-  private pick(from: Pt, want: number, box: Rect, obs: Rect[]): Pt | null {
-    let best: Pt | null = null
-    let bestS = -Infinity
-    for (let i = 0; i < 48; i++) {
-      const p = { x: box.l + Math.random() * (box.r - box.l), y: box.t + Math.random() * (box.b - box.t) }
-      const c = this.clearance(p, obs)
-      if (c === 0 || this.cursorNear(p)) continue
-      const d = Math.hypot(p.x - from.x, p.y - from.y)
-      let s = Math.min(c, 160) - Math.abs(d - want) * 0.35
-      if (!this.pathFree(from, p, obs)) s -= 400
-      if (s > bestS) {
-        bestS = s
-        best = p
-      }
-    }
-    return best
+  private zoneOf(x: number, y: number) {
+    const [zc, zr] = C.zones
+    const i = Math.min(zc - 1, Math.max(0, Math.floor((x / this.w) * zc)))
+    const j = Math.min(zr - 1, Math.max(0, Math.floor((y / window.innerHeight) * zr)))
+    return j * zc + i
   }
 
-  /** A new route from where he is now (viewport coordinates in, page coordinates out). */
+  /** A new route from where he is now, through the free cells of the screen (page coordinates out). */
   private plan() {
-    const { box, obs } = this.space()
-    const vtop = window.scrollY
+    const g = this.build()
+    const { cols, rows, free, clr } = g
+    const cs = C.cell
+    const vtop = g.y0
+    const n = cols * rows
+    const cell = (q: number): Pt => ({ x: ((q % cols) + 0.5) * cs, y: (Math.floor(q / cols) + 0.5) * cs })
     const here = { x: this.pos.x, y: this.pos.y - vtop }
-    if (box.r - box.l < 40 || box.b - box.t < 40) {
-      // a tiny window: just stay in its middle
+    this.planAt = this.t
+    // the start: his own cell, or the nearest free one (a scroll may have put him over the text)
+    let start = -1
+    let bd = Infinity
+    for (let q = 0; q < n; q++) {
+      if (!free[q]) continue
+      const c = cell(q)
+      const dd = (c.x - here.x) ** 2 + (c.y - here.y) ** 2
+      if (dd < bd) {
+        bd = dd
+        start = q
+      }
+    }
+    if (start < 0) {
+      // no free room on this screen at all: wait in the middle
       this.route = [{ x: this.w / 2, y: vtop + window.innerHeight / 2 }]
       this.kind = 'hover'
+      this.hoverLeft = 1
       return
     }
-    // no two routes of the same kind in a row
-    const kinds: RouteKind[] = (['glide', 'glide', 'loop', 'hover'] as RouteKind[]).filter((k) => k !== this.lastKind)
-    const kind = kinds[Math.floor(Math.random() * kinds.length)]
-    const span = Math.min(box.r - box.l, 900)
-    const pts: Pt[] = []
-    if (kind === 'glide') {
-      // a long glide across the free space, with one bend
-      let a = this.pick(here, span * 0.45, box, obs)
-      if (a) pts.push(a)
-      const b = a && this.pick(a, span * 0.5, box, obs)
-      if (b) pts.push(b)
-    } else if (kind === 'loop') {
-      // a loop around a free spot: four points on an ellipse, skipping the ones that hit something
-      const c = this.pick(here, span * 0.3, box, obs)
-      if (c) {
-        const R = Math.min(C.loopRadius, (box.r - box.l) / 3)
-        const a0 = Math.atan2(here.y - c.y, here.x - c.x)
-        const dir = Math.random() < 0.5 ? 1 : -1
-        for (let i = 1; i <= 5; i++) {
-          const a = a0 + dir * i * ((Math.PI * 2) / 5)
-          const p = { x: c.x + Math.cos(a) * R, y: c.y + Math.sin(a) * R * 0.6 }
-          if (p.x > box.l && p.x < box.r && p.y > box.t && p.y < box.b && this.clearance(p, obs) > 0) pts.push(p)
+    // Dijkstra over the free cells; a step costs more near a wall, so he keeps to the middle of a corridor
+    const cost = new Float32Array(n).fill(Infinity)
+    const from = new Int32Array(n).fill(-1)
+    const heap: number[] = [start]
+    cost[start] = 0
+    const push = (q: number) => {
+      heap.push(q)
+      let k = heap.length - 1
+      while (k > 0) {
+        const p = (k - 1) >> 1
+        if (cost[heap[p]] <= cost[heap[k]]) break
+        ;[heap[p], heap[k]] = [heap[k], heap[p]]
+        k = p
+      }
+    }
+    const pop = () => {
+      const top = heap[0]
+      const last = heap.pop()!
+      if (heap.length) {
+        heap[0] = last
+        let k = 0
+        for (;;) {
+          const l = 2 * k + 1
+          const r = l + 1
+          let m = k
+          if (l < heap.length && cost[heap[l]] < cost[heap[m]]) m = l
+          if (r < heap.length && cost[heap[r]] < cost[heap[m]]) m = r
+          if (m === k) break
+          ;[heap[m], heap[k]] = [heap[k], heap[m]]
+          k = m
         }
       }
-    } else {
-      // a short hop, then a pause in the air
-      const p = this.pick(here, span * 0.25, box, obs)
-      if (p) pts.push(p)
+      return top
     }
-    if (!pts.length) {
-      const p = this.pick(here, span * 0.4, box, obs)
-      if (p) pts.push(p)
+    const done = new Uint8Array(n)
+    const reach: number[] = []
+    while (heap.length) {
+      const q = pop()
+      if (done[q]) continue
+      done[q] = 1
+      reach.push(q)
+      const i = q % cols
+      const j = (q - i) / cols
+      for (let dj = -1; dj <= 1; dj++)
+        for (let di = -1; di <= 1; di++) {
+          if (!di && !dj) continue
+          const ni = i + di
+          const nj = j + dj
+          if (ni < 0 || nj < 0 || ni >= cols || nj >= rows) continue
+          const nq = nj * cols + ni
+          if (!free[nq] || done[nq]) continue
+          // no cutting a corner past a blocked cell
+          if (di && dj && (!free[j * cols + ni] || !free[nj * cols + i])) continue
+          const c = cost[q] + (di && dj ? Math.SQRT2 : 1) * (1 + 24 / Math.max(clr[nq], 8))
+          if (c < cost[nq]) {
+            cost[nq] = c
+            from[nq] = q
+            push(nq)
+          }
+        }
     }
+    // the target: somewhere he has not been lately, far enough, away from the cursor; narrow strips get a bonus
+    // time spent in each zone, measured against how much free room the zone has, so a zone that is
+    // mostly text with a thin margin does not keep calling him back
+    const share = new Float32Array(this.zoneT.length)
+    for (const q of reach) {
+      const c = cell(q)
+      share[this.zoneOf(c.x, c.y)] += 1 / reach.length
+    }
+    const need = this.zoneT.map((z, k) => z / Math.max(share[k], 0.02))
+    let maxZ = 1e-3
+    for (const z of need) maxZ = Math.max(maxZ, z)
+    const diag = Math.hypot(this.w, window.innerHeight)
+    let target = -1
+    let bestS = -Infinity
+    for (let k = 0; k < 90 && reach.length > 1; k++) {
+      const q = reach[1 + Math.floor(Math.random() * (reach.length - 1))]
+      const c = cell(q)
+      const dEu = Math.hypot(c.x - here.x, c.y - here.y)
+      let s = 2 * (1 - need[this.zoneOf(c.x, c.y)] / maxZ) + 0.6 * Math.min(1, dEu / (0.6 * diag)) + 0.7 * Math.random()
+      if (dEu < C.minLeg) s -= 3
+      if (clr[q] < 40) s += 0.15
+      if (this.cursorNear(c)) s -= 5
+      if (s > bestS) {
+        bestS = s
+        target = q
+      }
+    }
+    if (target < 0) {
+      this.route = [{ x: here.x, y: here.y + vtop }]
+      this.kind = 'hover'
+      this.hoverLeft = C.hoverFor[0]
+      return
+    }
+    // the path back from the target, then straightened: from each corner, jump to the farthest cell in sight
+    const path: number[] = []
+    for (let q = target; q >= 0; q = from[q]) path.push(q)
+    path.reverse()
+    const sight = (a: Pt, b: Pt) => {
+      const steps = Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / (cs / 2))
+      for (let k = 1; k < steps; k++) {
+        const x = a.x + ((b.x - a.x) * k) / steps
+        const y = a.y + ((b.y - a.y) * k) / steps
+        const i = Math.floor(x / cs)
+        const j = Math.floor(y / cs)
+        if (i < 0 || j < 0 || i >= cols || j >= rows || !free[j * cols + i]) return false
+      }
+      return true
+    }
+    const pts: Pt[] = []
+    let a = 0
+    while (a < path.length - 1) {
+      let b = path.length - 1
+      while (b > a + 1 && !sight(cell(path[a]), cell(path[b]))) b--
+      pts.push(cell(path[b]))
+      a = b
+    }
+    // now and then a loop where there is room, or a pause in the air
+    let kind: RouteKind = 'glide'
+    const end = cell(target)
+    const r = Math.min(C.loopRadius, clr[target] * 0.9)
+    if (Math.random() < C.loopChance && r > 70) {
+      const dir = Math.random() < 0.5 ? 1 : -1
+      const a0 = Math.atan2(here.y - end.y, here.x - end.x)
+      let prev = end
+      for (let k = 1; k <= 6; k++) {
+        const ang = a0 + dir * k * ((Math.PI * 2) / 6)
+        const p = { x: end.x + Math.cos(ang) * r, y: end.y + Math.sin(ang) * r * 0.6 }
+        if (!sight(prev, p)) break
+        pts.push(p)
+        prev = p
+      }
+      kind = 'loop'
+    } else if (Math.random() < C.hoverChance) kind = 'hover'
     this.kind = kind
-    this.lastKind = kind
     this.hoverLeft = kind === 'hover' ? C.hoverFor[0] + Math.random() * (C.hoverFor[1] - C.hoverFor[0]) : 0
     this.route = pts.map((p) => ({ x: p.x, y: p.y + vtop }))
-    this.planAt = this.t
   }
 
   // ---------- one frame ----------
@@ -267,7 +418,7 @@ export class SiteBat {
     } else {
       // the route: replan when it runs out, when its next point has left the screen, or now and then
       const next = this.route[0]
-      const off = next && (next.y < vtop + 80 || next.y > vtop + vh - 40)
+      const off = next && (next.y < vtop + this.head.getBoundingClientRect().bottom || next.y > vtop + vh)
       if (!next || off || t - this.planAt > C.replanAfter) this.plan()
       let target = this.route[0] ?? { x: this.pos.x, y: this.pos.y }
       const dist = Math.hypot(target.x - this.pos.x, target.y - this.pos.y)
@@ -281,9 +432,14 @@ export class SiteBat {
       const dx = target.x - this.pos.x
       const dy = target.y - this.pos.y
       const dl = Math.hypot(dx, dy) || 1
-      const sp = Math.min(C.maxSpeed, dl * 1.8)
+      // slower in a narrow place and when arriving at the last point
+      const sp = Math.min(C.maxSpeed, C.narrowBase + C.narrowPerPx * this.room(this.pos), this.route.length > 1 ? Infinity : dl * 1.8 + 40)
       let dvx = (dx / dl) * sp
       let dvy = (dy / dl) * sp
+      // a soft wall at the screen edges, so a fast turn never carries him off the side
+      if (this.pos.x < C.edgeX) dvx += (C.edgeX - this.pos.x) * 8
+      if (this.pos.x > w - C.edgeX) dvx -= (this.pos.x - w + C.edgeX) * 8
+      if (this.pos.y > vtop + vh - C.edgeBottom) dvy -= (this.pos.y - vtop - vh + C.edgeBottom) * 8
       // he keeps out of the cursor's way, but never follows it
       if (live) {
         const ex = this.pos.x - mx
@@ -301,6 +457,10 @@ export class SiteBat {
       this.pos.x += this.vel.x * dt
       this.pos.y += this.vel.y * dt
       this.relY = this.pos.y - vtop
+      // remember which part of the screen he has been in, so the next target is somewhere else
+      const fade = Math.exp(-dt / C.zoneMemory)
+      for (let z = 0; z < this.zoneT.length; z++) this.zoneT[z] *= fade
+      this.zoneT[this.zoneOf(this.pos.x, this.relY)] += dt
       // he glides most of the time and flaps in bursts: when climbing, when slow (a hover) and now and then
       const spd = Math.hypot(this.vel.x, this.vel.y)
       const wantF = spd < C.flapBelowSpeed || this.vel.y < -C.flapClimb || t % C.flapCycle < C.flapCycleOn ? 1 : 0
