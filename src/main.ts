@@ -12,7 +12,6 @@ const isDark = () => root.dataset.theme === 'night'
 type Mode = 'auto' | 'day' | 'night'
 const sw = document.getElementById('switch') as HTMLButtonElement
 const swLabel = sw.querySelector('.switch__label') as HTMLElement
-const swTrack = sw.querySelector('.switch__track') as HTMLElement
 const themeMeta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement
 const deviceDark = matchMedia('(prefers-color-scheme: dark)')
 const mode = () => (root.dataset.mode as Mode) || 'auto'
@@ -35,20 +34,9 @@ function setMode(m: Mode) {
   }
   applyTheme()
 }
-sw.addEventListener('click', (e) => {
-  // a click on the track picks the position under the pointer: left off, middle auto, right on
-  if (e.detail > 0 && swTrack.contains(e.target as Node)) {
-    const r = swTrack.getBoundingClientRect()
-    const u = (e.clientX - r.left) / r.width
-    setMode(u < 0.36 ? 'night' : u > 0.64 ? 'day' : 'auto')
-    return
-  }
-  // the label or the keyboard steps through: auto → the other theme → back → auto
-  const m = mode()
-  if (m === 'auto') setMode(isDark() ? 'day' : 'night')
-  else if ((m === 'night') !== deviceDark.matches) setMode(m === 'day' ? 'night' : 'day')
-  else setMode('auto')
-})
+// every click moves to the next position: auto → on → off → auto
+const next: Record<Mode, Mode> = { auto: 'day', day: 'night', night: 'auto' }
+sw.addEventListener('click', () => setMode(next[mode()]))
 deviceDark.addEventListener('change', () => mode() === 'auto' && applyTheme())
 applyTheme()
 
