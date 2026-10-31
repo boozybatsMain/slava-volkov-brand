@@ -42,7 +42,8 @@
       <!-- Хиро «Lights Off»: имя внизу слева, ночью звёзды и свечение букв. -->
       <section class="hero" id="top">
         <canvas class="hero__stars" id="stars" aria-hidden="true"></canvas>
-        <div class="hero__text">
+        <!-- В хиро мышь летает только в пустоте над именем: весь блок с именем, подписью и кнопкой до низа хиро для неё закрыт. -->
+        <div class="hero__text" data-bat-avoid="to-bottom">
           <h1 class="hero__title" data-bat-avoid>Slava<br />Volkov</h1>
           <div class="hero__row">
             <p class="hero__sub" data-bat-avoid>Independent game developer</p>

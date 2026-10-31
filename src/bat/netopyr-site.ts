@@ -106,6 +106,8 @@ export class SiteBat {
 
   private grid: { y0: number; cols: number; rows: number; free: Uint8Array; clr: Float32Array } | null = null
   private zoneT = new Float32Array(C.zones[0] * C.zones[1])
+  /** routes left before the next trip into the narrow strips */
+  private openLeft = C.openRoutes[0]
 
   private build() {
     const cs = C.cell
@@ -125,7 +127,12 @@ export class SiteBat {
       }
     }
     for (const el of document.querySelectorAll<HTMLElement>('[data-bat-avoid]')) {
-      const r = el.getBoundingClientRect()
+      let r = el.getBoundingClientRect()
+      // data-bat-avoid="to-bottom": closed from the element down to the bottom of its section and across its full width
+      if (el.dataset.batAvoid === 'to-bottom' && el.parentElement) {
+        const p = el.parentElement.getBoundingClientRect()
+        r = new DOMRect(p.left, r.top, p.width, p.bottom - r.top)
+      }
       if (r.width === 0 || r.bottom < -C.avoidY || r.top > vh + C.avoidY) continue
       // every cell whose centre falls in the grown box
       const i0 = Math.max(0, Math.ceil((r.left - C.avoidX) / cs - 0.5))
@@ -283,7 +290,22 @@ export class SiteBat {
           }
         }
     }
-    // the target: somewhere he has not been lately, far enough, away from the cursor; narrow strips get a bonus
+    // the target. He first circles the roomiest part of the screen (cells with at least openRoom of the
+    // largest clearance here) for a few routes, and only then takes one trip into the narrow strips.
+    // Within either phase: somewhere he has not been lately, far enough, away from the cursor.
+    let maxClr = 0
+    for (const q of reach) maxClr = Math.max(maxClr, clr[q])
+    const openMin = Math.max(C.narrowBelow, maxClr * C.openRoom)
+    let open = this.openLeft > 0
+    if (open) this.openLeft--
+    else this.openLeft = C.openRoutes[0] + Math.floor(Math.random() * (C.openRoutes[1] - C.openRoutes[0] + 1))
+    const fits = (q: number) => (open ? clr[q] >= openMin : clr[q] < C.narrowBelow)
+    let pool = reach.filter((q, k) => k > 0 && fits(q))
+    if (pool.length < 4) {
+      // nothing of that kind on this screen: any free cell will do
+      pool = reach.slice(1)
+      open = false
+    }
     // time spent in each zone, measured against how much free room the zone has, so a zone that is
     // mostly text with a thin margin does not keep calling him back
     const share = new Float32Array(this.zoneT.length)
@@ -297,13 +319,12 @@ export class SiteBat {
     const diag = Math.hypot(this.w, window.innerHeight)
     let target = -1
     let bestS = -Infinity
-    for (let k = 0; k < 90 && reach.length > 1; k++) {
-      const q = reach[1 + Math.floor(Math.random() * (reach.length - 1))]
+    for (let k = 0; k < 90 && pool.length; k++) {
+      const q = pool[Math.floor(Math.random() * pool.length)]
       const c = cell(q)
       const dEu = Math.hypot(c.x - here.x, c.y - here.y)
       let s = 2 * (1 - need[this.zoneOf(c.x, c.y)] / maxZ) + 0.6 * Math.min(1, dEu / (0.6 * diag)) + 0.7 * Math.random()
       if (dEu < C.minLeg) s -= 3
-      if (clr[q] < 40) s += 0.15
       if (this.cursorNear(c)) s -= 5
       if (s > bestS) {
         bestS = s
@@ -343,7 +364,7 @@ export class SiteBat {
     let kind: RouteKind = 'glide'
     const end = cell(target)
     const r = Math.min(C.loopRadius, clr[target] * 0.9)
-    if (Math.random() < C.loopChance && r > 70) {
+    if (Math.random() < (open ? C.loopChanceOpen : C.loopChance) && r > 70) {
       const dir = Math.random() < 0.5 ? 1 : -1
       const a0 = Math.atan2(here.y - end.y, here.x - end.x)
       let prev = end
