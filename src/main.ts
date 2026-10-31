@@ -1,12 +1,10 @@
-// The site: the light switch (day / night for the whole page), the "Show all 6 games" peek, the stars of the
-// night hero and Нетопырь. three.js and the bat load after the page is up, so the first paint never waits for them.
+// The site (both pages): the light switch (day / night, remembered), the game covers' videos, the scroll hint,
+// the stars of the night hero and Нетопырь. three.js and the bat load after the page is up, so the first paint never waits for them.
 import './styles.css'
 import { site } from './site.config'
-import type { SiteBat } from './bat/netopyr-site'
 
 const root = document.documentElement
 const isDark = () => root.dataset.theme === 'night'
-let bat: SiteBat | null = null
 
 // ---------- the light switch ----------
 const sw = document.getElementById('switch') as HTMLButtonElement
@@ -27,26 +25,53 @@ sw.addEventListener('click', () => {
     /* private mode: the choice just isn't remembered */
   }
   showTheme()
-  bat?.setDark(dark)
 })
 showTheme()
 
-// ---------- more games: the peek opens the next row in place ----------
-const peek = document.getElementById('peek') as HTMLElement
-const more = document.getElementById('more') as HTMLElement
-for (const b of document.querySelectorAll<HTMLButtonElement>('[data-more]')) {
-  b.addEventListener('click', () => {
-    const open = more.hidden
-    more.hidden = !open
-    peek.hidden = open
-    // keep the keyboard on the control that is now there
-    const next = (open ? more : peek).querySelector<HTMLButtonElement>('[data-more]')
-    next?.focus({ preventScroll: true })
-  })
+// ---------- game covers: the featured video plays at once, the others on hover ----------
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)')
+const canHover = matchMedia('(hover: hover)')
+function play(v: HTMLVideoElement) {
+  v.play().then(
+    () => v.classList.add('is-playing'),
+    () => {}, // autoplay refused (power saving etc.): the picture stays
+  )
+}
+function stop(v: HTMLVideoElement) {
+  v.pause()
+  v.classList.remove('is-playing')
+}
+for (const v of document.querySelectorAll<HTMLVideoElement>('video[data-autoplay]')) {
+  if (reducedMotion.matches) continue
+  // only while it is on screen
+  new IntersectionObserver(([e]) => (e.isIntersecting ? play(v) : v.pause())).observe(v)
+}
+for (const v of document.querySelectorAll<HTMLVideoElement>('video[data-hover]')) {
+  const host = v.closest('[data-video]') as HTMLElement
+  if (canHover.matches) {
+    host.addEventListener('pointerenter', () => play(v))
+    host.addEventListener('pointerleave', () => {
+      stop(v)
+      v.currentTime = 0
+    })
+    host.addEventListener('focus', () => play(v))
+    host.addEventListener('blur', () => stop(v))
+  } else if (!reducedMotion.matches) {
+    // phones have no hover: a card plays while it is mostly on screen
+    new IntersectionObserver(([e]) => (e.isIntersecting ? play(v) : stop(v)), { threshold: 0.75 }).observe(host)
+  }
+}
+
+// ---------- "there is more below": the hint goes after the first scroll ----------
+const hint = document.querySelector('.scroll-hint')
+if (hint) {
+  const check = () => hint.classList.toggle('is-gone', window.scrollY > 40)
+  addEventListener('scroll', check, { passive: true })
+  check()
 }
 
 // ---------- the night sky of the hero (2D, drawn once per size) ----------
-const stars = document.getElementById('stars') as HTMLCanvasElement
+const stars = document.getElementById('stars') as HTMLCanvasElement | null
 function rng(seed: number) {
   return () => {
     seed |= 0
@@ -57,6 +82,7 @@ function rng(seed: number) {
   }
 }
 function drawStars() {
+  if (!stars) return
   const w = stars.clientWidth
   const h = stars.clientHeight
   if (!w || !h) return
@@ -78,7 +104,7 @@ function drawStars() {
   }
   g.globalAlpha = 1
 }
-new ResizeObserver(drawStars).observe(stars)
+if (stars) new ResizeObserver(drawStars).observe(stars)
 
 // ---------- Нетопырь ----------
 async function startBat() {
@@ -86,7 +112,7 @@ async function startBat() {
   const head = document.getElementById('head') as HTMLElement
   try {
     const { SiteBat } = await import('./bat/netopyr-site')
-    bat = new SiteBat(canvas, document.getElementById('halo'), head, isDark())
+    new SiteBat(canvas, document.getElementById('halo'), head)
     root.dataset.batReady = ''
   } catch (e) {
     // no WebGL: the site works the same without him

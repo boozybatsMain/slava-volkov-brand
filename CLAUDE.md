@@ -4,7 +4,7 @@
 
 Бренд (только то, что решил Слава) — `brand/README.md`. Маскот Нетопырь — `brand/mascot/`: 3D-просмотрщик и модуль для игр на three.js; сайт берёт его оттуда же.
 
-- Одна страница: `index.html` → `src/main.ts`. Дизайн — финальный макет «Slava Volkov site, final page» (https://claude.ai/artifact/73QP7xhGixmhQ7zskNzdqS). Сверять с ним, не придумывать своё.
+- Две страницы: `index.html` и `games/index.html`, обе → `src/main.ts`. Игры — только в `src/games.data.ts`. Дизайн — финальный макет «Slava Volkov site, final page» (https://claude.ai/artifact/73QP7xhGixmhQ7zskNzdqS). Сверять с ним, не придумывать своё.
 - Ручки арт-директинга — в `src/site.config.ts` (новые добавлять туда, с русским комментарием). Цвета обеих тем — токены в начале `src/styles.css`.
 - Тексты в [квадратных скобках] — заглушки. Не заменять выдуманным, ждать текст от Славы.
 - WebGL на сайте ровно один: маленький холст Нетопыря (`src/bat/`). Второй не заводить; рисовать только когда он виден.
