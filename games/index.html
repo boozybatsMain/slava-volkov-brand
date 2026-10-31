@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" data-theme="day">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Games · Slava Volkov</title>
+    <meta name="description" content="All games by Slava Volkov, independent game developer." />
+    <meta name="theme-color" content="#f2efe8" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23121212'/%3E%3Ccircle cx='5.5' cy='7' r='1.3' fill='%239ccaff'/%3E%3Ccircle cx='10.5' cy='7' r='1.3' fill='%239ccaff'/%3E%3C/svg%3E" />
+    <!-- Тема до первого кадра: выбор выключателя запоминается (src/main.ts → theme), без мигания дневной темы ночью. -->
+    <script>
+      try { if (localStorage.getItem('sv-theme') === 'night') document.documentElement.dataset.theme = 'night' } catch (e) {}
+    </script>
+  </head>
+  <body class="page-games">
+    <a class="skip" href="#all">Skip to games</a>
+
+    <header class="head" id="head">
+      <a class="head__name" href="../">Slava Volkov</a>
+      <div class="head__row">
+        <nav class="head__nav" aria-label="Sections">
+          <a href="./" aria-current="page">Games</a>
+          <a href="../#about">About</a>
+          <a href="../#contact">Contact</a>
+        </nav>
+        <button class="switch" id="switch" type="button" aria-pressed="true" aria-label="Lights">
+          <span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span>
+          <span class="switch__label" aria-hidden="true">Lights on</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="wrap games-page" id="all">
+      <div class="games-page__head">
+        <a class="back link" href="../" data-bat-avoid>← Slava Volkov</a>
+        <h1 class="games__title" data-bat-avoid>All games</h1>
+      </div>
+      <!-- Карточки и их порядок — src/games.data.ts (gamesPage). -->
+      <!--games:all-->
+    </main>
+
+    <footer class="foot foot--page" data-bat-avoid>
+      <span>© 2026 Slava Volkov</span>
+      <a class="link" href="../#contact">Say hi →</a>
+    </footer>
+
+    <!-- Нетопырь: один маленький WebGL-холст на весь сайт (src/bat). Летает сам по свободным местам экрана,
+         днём и ночью; элементы с data-bat-avoid он облетает. -->
+    <div class="bat-layer">
+      <div class="bat-halo" id="halo" aria-hidden="true"></div>
+      <canvas class="bat" id="bat" role="img" aria-label="Netopyr the bat, flying around the empty parts of the page"></canvas>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
