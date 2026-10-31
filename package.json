@@ -1,5 +1,5 @@
 {
-  "name": "slava-volkov-hero",
+  "name": "slava-volkov-site",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -8,18 +8,14 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "shot": "node scripts/shot.mjs",
-    "banners": "node scripts/banners.mjs"
+    "shot": "node scripts/shot.mjs"
   },
   "dependencies": {
-    "@fontsource-variable/geist": "^5.3.0",
-    "@fontsource/kalam": "^5.3.0",
-    "@fontsource/roboto-mono": "^5.3.0",
-    "lil-gui": "^0.21.0",
-    "three": "^0.186.1"
+    "@fontsource-variable/inter-tight": "^5.3.0",
+    "three": "0.170.0"
   },
   "devDependencies": {
-    "@types/three": "^0.186.0",
+    "@types/three": "0.170.0",
     "playwright-core": "^1.63.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.3"

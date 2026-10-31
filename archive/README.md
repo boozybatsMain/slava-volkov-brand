@@ -23,3 +23,6 @@ Not part of the build (outside `src/`, not typechecked).
   `soft.ts`, `font.json` — would otherwise stay behind and fail the typecheck) and copy `index.html`
   back. `public/`, `vite.config.ts` and `tsconfig.json` did not change in the rework;
   `scripts/about-glyphs/` (the glyph bake) is only used by the new About and can stay.
+- `v3-sky-site/` — весь сайт до 2026-10-31 (небо, растровый тайтл, экраны проектов и ABOUT, баннеры для соцсетей
+  и их скрипты), с его `HANDOFF.md`. Заменён новым сайтом по финальному макету. Ему нужны прежние зависимости
+  (three 0.186, lil-gui, шрифты Geist / Kalam / Roboto Mono) и прежние `vite.config.ts`, `index.html`.

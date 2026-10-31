@@ -5,9 +5,8 @@ export default defineConfig({
     port: Number(process.env.PORT) || 5173,
     strictPort: !!process.env.PORT,
   },
-  // three.js lives in the lazily loaded title chunk (~140 kB gzip); that is expected
-  // one page: index.html — version 2 (sky). Version 1 (paper + windows) is in archive/v1-paper.
   build: {
-    chunkSizeWarningLimit: 600,
+    // three.js and Нетопырь live in one lazily loaded chunk (~150 kB gzip), loaded after the page is up
+    chunkSizeWarningLimit: 700,
   },
 })
