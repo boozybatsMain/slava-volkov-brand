@@ -698,17 +698,25 @@ section.games[id] {
 /* ---------- контакты: тёмная полоса ---------- */
 .contact {
   margin-top: 220px;
+  /* в самом низу страницы полоса занимает весь экран под шапкой, без зазора сверху */
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - var(--head-h));
+  min-height: calc(100dvh - var(--head-h));
   background: var(--band);
   color: var(--band-fg);
   transition: background-color var(--fade), color var(--fade);
 }
 .contact__in {
+  flex: 1;
+  width: 100%;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 180px var(--gutter) 150px;
+  padding: 120px var(--gutter) 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 32px;
   text-align: center;
 }
@@ -741,18 +749,22 @@ section.games[id] {
   text-underline-offset: 0.14em;
   text-decoration-thickness: 2px;
 }
-/* соцсети: один ник крупно и ряд значков, везде @buzzybats */
+/* соцсети: ник и ряд значков под чертой, везде @buzzybats */
 .social {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 20px;
-  margin-top: 8px;
+  justify-content: center;
+  gap: 16px 22px;
+  margin-top: 40px;
+  padding-top: 40px;
+  border-top: 1px solid var(--band-chip);
 }
+/* ник тише и мельче почты, в одну строку со значками, чтобы две строки с @ не слипались */
 .social__handle {
-  font-size: clamp(28px, 3.4vw, 44px);
-  font-weight: 700;
-  letter-spacing: -0.035em;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--band-sub);
 }
 .social__icons {
   display: flex;
@@ -778,6 +790,7 @@ section.games[id] {
   color: #140a02;
 }
 .foot {
+  width: 100%;
   max-width: 1296px;
   margin: 0 auto;
   padding: 0 var(--gutter) 48px;
