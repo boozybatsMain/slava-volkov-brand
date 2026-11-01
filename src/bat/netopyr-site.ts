@@ -437,6 +437,11 @@ export class SiteBat {
         this.route = []
       }
     } else {
+      // after a long scroll he is far off the screen: move him (unseen) to just beyond its edge, so he flies
+      // back in within a second instead of crossing the whole page; same both ways
+      const lead = 220
+      if (this.pos.y < vtop - lead) this.pos.y = vtop - lead
+      else if (this.pos.y > vtop + vh + lead) this.pos.y = vtop + vh + lead
       // the route: replan when it runs out, when its next point has left the screen, or now and then
       const next = this.route[0]
       const off = next && (next.y < vtop + this.head.getBoundingClientRect().bottom || next.y > vtop + vh)
@@ -458,9 +463,10 @@ export class SiteBat {
       let dvx = (dx / dl) * sp
       let dvy = (dy / dl) * sp
       // a soft wall at the screen edges, so a fast turn never carries him off the side
-      if (this.pos.x < C.edgeX) dvx += (C.edgeX - this.pos.x) * 8
-      if (this.pos.x > w - C.edgeX) dvx -= (this.pos.x - w + C.edgeX) * 8
-      if (this.pos.y > vtop + vh - C.edgeBottom) dvy -= (this.pos.y - vtop - vh + C.edgeBottom) * 8
+      // (only near the edge: after a scroll he may be far below the screen, and then he just flies back on his route)
+      const wall = (over: number) => (over > 0 && over < 150 ? over * 8 : 0)
+      dvx += wall(C.edgeX - this.pos.x) - wall(this.pos.x - w + C.edgeX)
+      dvy -= wall(this.pos.y - vtop - vh + C.edgeBottom)
       // he keeps out of the cursor's way, but never follows it
       if (live) {
         const ex = this.pos.x - mx
@@ -471,6 +477,12 @@ export class SiteBat {
           dvy += (ey / ed) * (C.keepAway - ed) * 4
           if (ed < C.keepAway * 0.6) this.route = [] // a new route away from it
         }
+      }
+      // never faster than his top speed, whichever pushes add up, so a return after a scroll is as calm up as down
+      const dm = Math.hypot(dvx, dvy)
+      if (dm > C.maxSpeed) {
+        dvx *= C.maxSpeed / dm
+        dvy *= C.maxSpeed / dm
       }
       const acc = Math.min(1, dt * C.steer)
       this.vel.x += (dvx - this.vel.x) * acc
