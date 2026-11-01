@@ -31,7 +31,7 @@
 - Кадры: в контейнере только программный WebGL (SwiftShader). Там днём 60 fps, ночью 30 fps, и узкое место — сам WebGL. На настоящей видеокарте не мерилось.
 
 ## Дальше
-- Почта hello@slavavolkov.com — заработает, когда будет домен и ящик. Соцсети — везде @buzzybats (Instagram Слава переименует).
+- Почта hello@slavavolkov.com — заработает, когда будет домен и ящик. Соцсети: X, TikTok, YouTube — @buzzybats, Instagram — instagram.com/buzzy_bats (подпись на сайте общая, @buzzybats).
 - Corner Guy, Frigate Naval Battles, Big Big Kick убраны, пока Слава их не доделает; добавлять в `src/games.data.ts`, когда скажет.
 - Домен slavavolkov.com (Слава купит): CNAME в `public/` и настройка Pages.
 - Проверить на Safari, Firefox и телефонах, замерить кадры на настоящей видеокарте.
