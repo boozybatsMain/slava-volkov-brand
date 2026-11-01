@@ -826,6 +826,12 @@ section.games[id] {
   display: block;
   width: 440px;
   height: 340px;
+  transition: opacity 1.1s ease;
+}
+/* пока модель грузится, мыши не видно; потом она плавно проявляется, а не выскакивает */
+html:not([data-bat-ready]) .bat,
+html:not([data-bat-ready]) .bat-halo {
+  opacity: 0;
 }
 .bat-halo {
   z-index: -1;

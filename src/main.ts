@@ -158,21 +158,25 @@ function drawStars() {
 if (stars) new ResizeObserver(drawStars).observe(stars)
 
 // ---------- Нетопырь ----------
+// three.js and the bat start downloading right away, alongside the page; he is built once the page has
+// settled, and fades in after his first frame is on screen (html[data-bat-ready], styles.css) instead of popping up.
+const batModule = import('./bat/netopyr-site')
 async function startBat() {
   const canvas = document.getElementById('bat') as HTMLCanvasElement
   const head = document.getElementById('head') as HTMLElement
   try {
-    const { SiteBat } = await import('./bat/netopyr-site')
+    const { SiteBat } = await batModule
     new SiteBat(canvas, document.getElementById('halo'), head)
-    root.dataset.batReady = ''
+    requestAnimationFrame(() => requestAnimationFrame(() => (root.dataset.batReady = '')))
   } catch (e) {
     // no WebGL: the site works the same without him
     canvas.remove()
     console.warn('Netopyr is off:', e)
   }
-  root.dataset.heroReady = '' // scripts/shot.mjs waits for this
+  root.dataset.heroReady = '1' // scripts/shot.mjs waits for this
 }
+batModule.catch(() => {}) // a failed download is handled in startBat
 const idle = (window as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void }).requestIdleCallback
-const later = () => (idle ? idle(startBat, { timeout: 1200 }) : setTimeout(startBat, 200))
+const later = () => (idle ? idle(startBat, { timeout: 600 }) : setTimeout(startBat, 100))
 if (document.readyState === 'complete') later()
 else addEventListener('load', later, { once: true })
