@@ -46,13 +46,13 @@ export const games: Game[] = [
   },
   {
     id: 'fold-the-duo',
-    name: 'Fold the Duo',
-    href: 'https://genex.games/foldtheduo',
+    name: 'Unfold the Duo',
+    href: 'https://unfold-the-duo.genex.technology/',
     line: 'Play in browser',
     cover: 'fold-the-duo.webp',
     coverW: 1600,
     coverH: 900,
-    alt: 'Fold the Duo: two hands holding a folding phone with a broken screen above its open box',
+    alt: 'Unfold the Duo: two hands holding a folding phone with a broken screen above its open box',
     video: { mp4: 'fold-the-duo.mp4' },
   },
 ]
