@@ -1,0 +1,39 @@
+# Сайт на Cloudflare Pages (проект slavavolkov): каждый пуш в main собирается и выкладывается на
+# https://slavavolkov.com/ (и www). Каждый PR получает своё превью: <ветка>.slavavolkov.pages.dev
+# Нужен секрет репозитория CLOUDFLARE_API_TOKEN: токен Cloudflare с правом Cloudflare Pages: Edit.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+# один деплой на ветку за раз; начатый не отменяем, чтобы сайт не остался полувыложенным
+concurrency:
+  group: deploy-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      # сайт живёт в корне домена, base по умолчанию /
+      - run: npx vite build
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # аккаунт Boozybats50@gmail.com, в нём же домен slavavolkov.com
+          accountId: 95265c0858ffcf0f4bfa9cb67d29ab36
+          command: pages deploy dist --project-name slavavolkov --branch ${{ github.head_ref || github.ref_name }}
