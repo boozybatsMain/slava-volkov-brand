@@ -29,6 +29,13 @@ const [x, y] = await p.evaluate(() => {
 })
 await p.mouse.move(x, y + 40)
 await p.waitForTimeout(2500)
+// then make him big, turn him head up (as if flying at you) and move him into the empty right half:
+// the whole bat layer is scaled and turned about his centre; the halo would show the layer's clipped edge, so it goes
+const [tx, ty] = [860, 300]
+await p.addStyleTag({
+  content: `.bat-layer{overflow:visible;transform-origin:${x}px ${y}px;scale:1.9;rotate:180deg;translate:${tx - x}px ${ty - y}px} .bat-halo{display:none}`,
+})
+await p.waitForTimeout(800)
 await p.screenshot({ path: png })
 await b.close()
 execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', png, '-q:v', '3', jpg])
