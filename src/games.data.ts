@@ -59,7 +59,7 @@ export const games: Game[] = [
     award: {
       title: '#1 in Cohesion & Craft',
       event: 'All Tools Allowed 3 · itch.io',
-      href: 'https://itch.io/jam/all-tools-allowed-3/results',
+      href: 'https://itch.io/jam/all-tools-allowed-3/results/cohesion-craft',
     },
   },
   {
@@ -84,7 +84,7 @@ export const home = { featured: 'snowball', row: ['hollowgrin', 'fold-the-duo'] 
  */
 export const gamesPage: { id: string; size: 'feature' | 'wide' | 'narrow' | 'card' }[] = [
   { id: 'snowball', size: 'feature' },
-  { id: 'pumpkin-night', size: 'wide' },
-  { id: 'hollowgrin', size: 'narrow' },
-  { id: 'fold-the-duo', size: 'card' },
+  { id: 'hollowgrin', size: 'wide' },
+  { id: 'fold-the-duo', size: 'narrow' },
+  { id: 'pumpkin-night', size: 'card' },
 ]
