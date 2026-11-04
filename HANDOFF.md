@@ -40,6 +40,7 @@
 - Проверить на Safari, Firefox и телефонах, замерить кадры на настоящей видеокарте.
 
 ## Домен и репутация (04.11)
+- Выкладка автоматическая: `.github/workflows/cloudflare.yml` на каждый пуш в main собирает сайт и выкладывает его в Cloudflare Pages (проект slavavolkov). Нужен секрет репозитория CLOUDFLARE_API_TOKEN (Cloudflare Pages: Edit). Руками `wrangler pages deploy` больше не запускать и Славу об этом не просить; повторить выкладку — Actions → Cloudflare → Run workflow.
 - slavavolkov.com зарегистрирован Славой 01.11.2026 через Cloudflare. До этого домен принадлежал другому человеку (сертификаты 2023–2024 в crt.sh, хостинг REG.RU 31.31.196.239), отсюда старые пометки «phishing/malware» у антивирусов и отказ X. Текущая инфраструктура к REG.RU отношения не имеет.
 - `public/_headers` (HSTS без preload и пр.), `public/404.html` (настоящая 404 вместо главной с кодом 200), `robots.txt`, `sitemap.xml`, `.well-known/security.txt` (Expires — продлевать до 01.11.2027), `rel=canonical` на обеих страницах.
 - www → slavavolkov.com: Pages `_redirects` не умеет редиректы по хосту, поэтому это правило Redirect Rules в дашборде Cloudflare.
