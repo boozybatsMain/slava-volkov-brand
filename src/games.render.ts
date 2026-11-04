@@ -21,9 +21,43 @@ function media(g: Game, autoplay: boolean, eager: boolean) {
   return `<span class="media">${out}</span>`
 }
 
-/** An <a> when the game has a link, a plain block otherwise. */
+/** Laurel branch, drawn once and mirrored for the right side. */
+const branch =
+  '<path d="M7 21c-3.2-2.6-4.6-6.4-3.8-11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' +
+  [
+    [3.6, 8.2, -20],
+    [3.2, 11.6, -40],
+    [4, 15, -60],
+    [5.6, 18, -80],
+  ]
+    .map(([x, y, r]) => `<ellipse cx="${x - 1.6}" cy="${y}" rx="1.5" ry="2.8" transform="rotate(${r} ${x - 1.6} ${y})"/>`)
+    .join('')
+const laurel = (side: 'l' | 'r') =>
+  `<svg class="award__laurel award__laurel--${side}" viewBox="0 0 10 24" aria-hidden="true" fill="currentColor">${branch}</svg>`
+
+/** Jam award on the cover corner: its own link, so it sits beside the card link, not inside it. */
+function award(g: Game) {
+  const a = g.award
+  if (!a) return ''
+  return (
+    `<a class="award" href="${esc(a.href)}" target="_blank" rel="noopener" aria-label="${esc(`${a.title}, ${a.event}`)}">` +
+    laurel('l') +
+    `<span class="award__text"><span class="award__title">${esc(a.title)}</span><span class="award__event">${esc(a.event)}</span></span>` +
+    laurel('r') +
+    '</a>'
+  )
+}
+
+/** An <a> when the game has a link, a plain block otherwise. A game with an award gets a block that holds
+ *  the card link (display: contents, so the layout is the same) and the award link next to it. */
 function wrap(g: Game, cls: string, inner: string) {
-  const attrs = `class="${cls}" data-bat-avoid${g.video ? ' data-video' : ''}`
+  const attrs = `class="${cls}${g.award ? ' has-award' : ''}" data-bat-avoid${g.video ? ' data-video' : ''}`
+  if (g.award) {
+    const link = g.href
+      ? `<a class="contents" href="${esc(g.href)}" target="_blank" rel="noopener">${inner}</a>`
+      : inner
+    return `<div ${attrs}>${link}${award(g)}</div>`
+  }
   return g.href
     ? `<a ${attrs} href="${esc(g.href)}" target="_blank" rel="noopener">${inner}</a>`
     : `<div ${attrs}>${inner}</div>`
