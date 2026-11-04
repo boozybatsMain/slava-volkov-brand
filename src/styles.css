@@ -529,7 +529,8 @@ section.games[id] {
   transform: translateY(-2px);
 }
 
-/* награда джема: стеклянная плашка с лавром в левом верхнем углу обложки, отдельная ссылка */
+/* награды джема: стеклянные плашки с лавром в левом верхнем углу обложки, столбиком; каждая — отдельная ссылка.
+   Цвет — --award (золото у gold, серебро у silver) и --award-edge для обводки. */
 .has-award {
   position: relative;
 }
@@ -538,11 +539,19 @@ section.games[id] {
   color: inherit;
   text-decoration: none;
 }
-.award {
+.awards {
   position: absolute;
   top: 14px;
   left: 14px;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.award {
+  --award: #f5c451;
+  --award-edge: rgba(255, 214, 120, 0.35);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -551,11 +560,15 @@ section.games[id] {
   background: rgba(12, 10, 8, 0.62);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  box-shadow: inset 0 0 0 1px rgba(255, 214, 120, 0.35);
+  box-shadow: inset 0 0 0 1px var(--award-edge);
   color: #fff;
   text-decoration: none;
   line-height: 1.15;
   transition: background-color 0.2s ease;
+}
+.award--silver {
+  --award: #d9e0e8;
+  --award-edge: rgba(220, 228, 238, 0.38);
 }
 .award:hover {
   background: rgba(12, 10, 8, 0.82);
@@ -564,7 +577,7 @@ section.games[id] {
   flex: none;
   width: 13px;
   height: 30px;
-  color: #f5c451;
+  color: var(--award);
 }
 .award__laurel--r {
   transform: scaleX(-1);
@@ -579,7 +592,7 @@ section.games[id] {
   font-size: 13px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: #f5c451;
+  color: var(--award);
 }
 .award__event {
   font-size: 11px;
