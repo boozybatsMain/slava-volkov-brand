@@ -59,7 +59,7 @@ export const games: Game[] = [
     award: {
       title: '#1 in Cohesion & Craft',
       event: 'All Tools Allowed 3 · itch.io',
-      href: 'https://itch.io/jam/all-tools-allowed-3/results',
+      href: 'https://itch.io/jam/all-tools-allowed-3/results/cohesion-craft',
     },
   },
   {
