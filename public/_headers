@@ -1,0 +1,9 @@
+# Cloudflare Pages: заголовки для всех ответов сайта (на GitHub Pages этот файл просто лежит и ничего не делает).
+# HSTS: браузер дальше ходит только по https. Год, без preload (preload — отдельное решение, его трудно отменить).
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
