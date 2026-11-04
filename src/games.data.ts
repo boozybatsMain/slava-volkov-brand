@@ -18,8 +18,9 @@ export interface Game {
   /** Видео-обложка: на главной акцентной игре играет сразу, у остальных при наведении. */
   video?: { mp4: string; webm?: string }
   badge?: string
-  /** Награда: плашка с лавром в углу обложки, ведёт на результаты джема. */
-  award?: { title: string; event: string; href: string }
+  /** Награды: плашки с лавром в углу обложки, сверху вниз; каждая ведёт на свои результаты джема.
+   *  tier — цвет: gold (золото) или silver (серебро). */
+  awards?: { title: string; event: string; href: string; tier: 'gold' | 'silver' }[]
 }
 
 export const games: Game[] = [
@@ -56,11 +57,20 @@ export const games: Game[] = [
     coverH: 1000,
     alt: 'Hollowgrin: a pumpkin-headed host with long spider legs over three numbered cups',
     video: { mp4: 'hollowgrin.mp4', webm: 'hollowgrin.webm' },
-    award: {
-      title: '1st Place · Cohesion & Craft',
-      event: 'All Tools Allowed 3 · itch.io',
-      href: 'https://itch.io/jam/all-tools-allowed-3/results/cohesion-craft',
-    },
+    awards: [
+      {
+        title: '1st Place · Cohesion & Craft',
+        event: 'All Tools Allowed 3 · itch.io',
+        href: 'https://itch.io/jam/all-tools-allowed-3/results/cohesion-craft',
+        tier: 'gold',
+      },
+      {
+        title: '2nd Place · Overall',
+        event: 'All Tools Allowed 3 · itch.io',
+        href: 'https://itch.io/jam/all-tools-allowed-3/results',
+        tier: 'silver',
+      },
+    ],
   },
   {
     id: 'fold-the-duo',

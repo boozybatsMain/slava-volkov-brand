@@ -35,28 +35,34 @@ const branch =
 const laurel = (side: 'l' | 'r') =>
   `<svg class="award__laurel award__laurel--${side}" viewBox="0 0 10 24" aria-hidden="true" fill="currentColor">${branch}</svg>`
 
-/** Jam award on the cover corner: its own link, so it sits beside the card link, not inside it. */
-function award(g: Game) {
-  const a = g.award
-  if (!a) return ''
+/** Jam awards on the cover corner, stacked: each is its own link, so they sit beside the card link, not inside it. */
+function awards(g: Game) {
+  if (!g.awards?.length) return ''
   return (
-    `<a class="award" href="${esc(a.href)}" target="_blank" rel="noopener" aria-label="${esc(`${a.title}, ${a.event}`)}">` +
-    laurel('l') +
-    `<span class="award__text"><span class="award__title">${esc(a.title)}</span><span class="award__event">${esc(a.event)}</span></span>` +
-    laurel('r') +
-    '</a>'
+    '<span class="awards">' +
+    g.awards
+      .map(
+        (a) =>
+          `<a class="award award--${a.tier}" href="${esc(a.href)}" target="_blank" rel="noopener" aria-label="${esc(`${a.title}, ${a.event}`)}">` +
+          laurel('l') +
+          `<span class="award__text"><span class="award__title">${esc(a.title)}</span><span class="award__event">${esc(a.event)}</span></span>` +
+          laurel('r') +
+          '</a>',
+      )
+      .join('') +
+    '</span>'
   )
 }
 
 /** An <a> when the game has a link, a plain block otherwise. A game with an award gets a block that holds
- *  the card link (display: contents, so the layout is the same) and the award link next to it. */
+ *  the card link (display: contents, so the layout is the same) and the award links next to it. */
 function wrap(g: Game, cls: string, inner: string) {
-  const attrs = `class="${cls}${g.award ? ' has-award' : ''}" data-bat-avoid${g.video ? ' data-video' : ''}`
-  if (g.award) {
+  const attrs = `class="${cls}${g.awards?.length ? ' has-award' : ''}" data-bat-avoid${g.video ? ' data-video' : ''}`
+  if (g.awards?.length) {
     const link = g.href
       ? `<a class="contents" href="${esc(g.href)}" target="_blank" rel="noopener">${inner}</a>`
       : inner
-    return `<div ${attrs}>${link}${award(g)}</div>`
+    return `<div ${attrs}>${link}${awards(g)}</div>`
   }
   return g.href
     ? `<a ${attrs} href="${esc(g.href)}" target="_blank" rel="noopener">${inner}</a>`
