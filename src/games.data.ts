@@ -57,7 +57,7 @@ export const games: Game[] = [
     alt: 'Hollowgrin: a pumpkin-headed host with long spider legs over three numbered cups',
     video: { mp4: 'hollowgrin.mp4', webm: 'hollowgrin.webm' },
     award: {
-      title: '#1 in Cohesion & Craft',
+      title: '1st Place · Cohesion & Craft',
       event: 'All Tools Allowed 3 · itch.io',
       href: 'https://itch.io/jam/all-tools-allowed-3/results/cohesion-craft',
     },
