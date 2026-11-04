@@ -49,6 +49,10 @@ export class SiteBat {
   private kind: RouteKind = 'glide'
   private hoverLeft = 0
     private planAt = 0
+  /** where the hang clip had shuffled him along the branch when he let go (the takeoff clip starts at 0) */
+  private gripX = 0
+  private gripY = 0
+  private headFrom = { yaw: 0, pitch: 0 }
 
   constructor(private canvas: HTMLCanvasElement, private halo: HTMLElement | null, private head: HTMLElement) {
     this.stage = new Stage(canvas, { look: C.look, shells: C.shells, glow: C.glow, maxPixelRatio: C.maxPixelRatio })
@@ -402,7 +406,17 @@ export class SiteBat {
     const ax = w * (mobile ? C.perchXMobile : C.perchX)
     const ay = vtop + this.head.getBoundingClientRect().bottom - C.perchInset + PERCH_Y / k
 
-    if (this.mode === 'hang' && !this.reduced.matches && this.tm > C.letGoAfter) this.setMode('takeoff')
+    if (this.mode === 'hang' && !this.reduced.matches && this.tm > C.letGoAfter) {
+      // the hang clip shuffles him along the branch, the takeoff clip lets go from its middle: keep him
+      // where he is now (no hop to the side) and turn the head over from where it was
+      const h = st.clip(HANG, this.tm, st.pose())
+      if (live) st.look(h, ((mx - ax) / w) * 2, (-(my - ay) / vh) * 2, 0.5)
+      const o = st.clip(TAKEOFF, 0, st.pose())
+      this.gripX = h.x - o.x
+      this.gripY = h.y - o.y
+      this.headFrom = { yaw: h.hyaw, pitch: h.hpitch }
+      this.setMode('takeoff')
+    }
     if (this.mode === 'hang' || this.mode === 'takeoff') {
       if (this.mode === 'hang') {
         st.clip(HANG, this.tm, pb)
@@ -416,7 +430,15 @@ export class SiteBat {
           pb.phi = pb.phi * (1 - s) + 0.04 * Math.sin(t * 2.2) * s
         }
         if (live) st.look(pb, ((mx - ax) / w) * 2, (-(my - ay) / vh) * 2, 0.5)
-      } else st.clip(TAKEOFF, Math.min(this.tm, 2.39), pb)
+      } else {
+        st.clip(TAKEOFF, Math.min(this.tm, 2.39), pb)
+        const u = Math.min(1, this.tm / 0.4)
+        const e = u * u * (3 - 2 * u)
+        pb.hyaw = this.headFrom.yaw + (pb.hyaw - this.headFrom.yaw) * e
+        pb.hpitch = this.headFrom.pitch + (pb.hpitch - this.headFrom.pitch) * e
+        pb.x += this.gripX
+        pb.y += this.gripY
+      }
       st.place(pb, ax * k, -ay * k, 0)
       const nx = pb.x / k
       const ny = pb.y / k
