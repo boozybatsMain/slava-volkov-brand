@@ -32,7 +32,7 @@
 
 ## Дальше
 - Почта hello@slavavolkov.com — заработает, когда будет домен и ящик. Соцсети: X, TikTok, YouTube — @buzzybats, Instagram — instagram.com/buzzy_bats (подпись на сайте общая, @buzzybats).
-- С 04.11 первая на главной — Snowball (genex.games/snowball, плашка Newest). Pumpkin Night убрана из топ-3 и осталась только на /games, второй большой карточкой; её ссылка — genex.games/snowball?mode=pumpkin.
+- С 04.11 первая на главной — Snowball (genex.games/snowball, плашка Newest). Pumpkin Night убрана из топ-3 и осталась только на /games обычной карточкой (широкая в паре с Hollowgrin, Unfold the Duo под ними); её ссылка — genex.games/snowball?mode=pumpkin.
 - Corner Guy, Frigate Naval Battles, Big Big Kick убраны, пока Слава их не доделает; добавлять в `src/games.data.ts`, когда скажет.
 - Домен slavavolkov.com (Слава купит): CNAME в `public/` и настройка Pages.
 - Проверить на Safari, Firefox и телефонах, замерить кадры на настоящей видеокарте.
