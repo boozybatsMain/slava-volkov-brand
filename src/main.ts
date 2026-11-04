@@ -105,8 +105,8 @@ for (const v of hoverVideos) {
   if (canHover.matches) {
     host.addEventListener('pointerenter', () => play(v))
     host.addEventListener('pointerleave', () => stop(v, true))
-    host.addEventListener('focus', () => play(v))
-    host.addEventListener('blur', () => stop(v, true))
+    host.addEventListener('focusin', () => play(v))
+    host.addEventListener('focusout', () => stop(v, true))
   } else if (!reducedMotion.matches) {
     // phones have no hover: a card plays while it is mostly on screen
     new IntersectionObserver(([e]) => (e.isIntersecting ? play(v) : stop(v)), { threshold: 0.75 }).observe(host)

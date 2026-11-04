@@ -18,6 +18,8 @@ export interface Game {
   /** Видео-обложка: на главной акцентной игре играет сразу, у остальных при наведении. */
   video?: { mp4: string; webm?: string }
   badge?: string
+  /** Награда: плашка с лавром в углу обложки, ведёт на результаты джема. */
+  award?: { title: string; event: string; href: string }
 }
 
 export const games: Game[] = [
@@ -54,6 +56,11 @@ export const games: Game[] = [
     coverH: 1000,
     alt: 'Hollowgrin: a pumpkin-headed host with long spider legs over three numbered cups',
     video: { mp4: 'hollowgrin.mp4', webm: 'hollowgrin.webm' },
+    award: {
+      title: '#1 in Cohesion & Craft',
+      event: 'All Tools Allowed 3 · itch.io',
+      href: 'https://itch.io/jam/all-tools-allowed-3/results',
+    },
   },
   {
     id: 'fold-the-duo',
