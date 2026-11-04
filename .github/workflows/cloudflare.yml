@@ -1,0 +1,44 @@
+# slavavolkov.com на Cloudflare Pages: каждый пуш в main собирается и выкладывается сам.
+# Руками `wrangler pages deploy` больше запускать не нужно.
+# Нужен секрет репозитория CLOUDFLARE_API_TOKEN (токен с правом Cloudflare Pages: Edit).
+name: Cloudflare
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+# один деплой за раз; начатый не отменяем, чтобы сайт не остался полувыложенным
+concurrency:
+  group: cloudflare
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: slavavolkov.com
+      url: https://slavavolkov.com
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # сайт в корне домена, base по умолчанию "/"
+      - run: npm run build
+      - name: Deploy to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 95265c0858ffcf0f4bfa9cb67d29ab36
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::Нет секрета CLOUDFLARE_API_TOKEN в настройках репозитория"
+            exit 1
+          fi
+          npx --yes wrangler@4 pages deploy dist --project-name slavavolkov --branch main --commit-dirty=true
