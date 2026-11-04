@@ -22,16 +22,27 @@ export interface Game {
 
 export const games: Game[] = [
   {
+    id: 'snowball',
+    name: 'Snowball',
+    href: 'https://genex.games/snowball',
+    line: 'Play in browser',
+    cover: 'snowball.webp',
+    coverW: 1456,
+    coverH: 819,
+    alt: 'Snowball: a giant glowing snowman in a top hat rolling through a snowy field of snowmen under the northern lights',
+    video: { mp4: 'snowball.mp4' },
+    badge: 'Newest',
+  },
+  {
     id: 'pumpkin-night',
     name: 'Pumpkin Night',
-    href: 'https://genex.games/snowball',
+    href: 'https://genex.games/snowball?mode=pumpkin',
     line: 'Play in browser',
     cover: 'pumpkin-night.webp',
     coverW: 1600,
     coverH: 900,
     alt: 'Pumpkin Night: a giant jack-o’-lantern in a witch hat floating over a graveyard under the full moon',
     video: { mp4: 'pumpkin-night.mp4' },
-    badge: 'Newest',
   },
   {
     id: 'hollowgrin',
@@ -58,13 +69,14 @@ export const games: Game[] = [
 ]
 
 /** Главная: первая — большая, с видео сразу; две следующие — карточки с видео при наведении. */
-export const home = { featured: 'pumpkin-night', row: ['hollowgrin', 'fold-the-duo'] }
+export const home = { featured: 'snowball', row: ['hollowgrin', 'fold-the-duo'] }
 
 /**
  * Страница /games: сверху вниз. 'feature' — большая карточка на всю ширину (видео играет сразу только
  * у первой), 'wide' и 'narrow' — пара в одном ряду (7 и 5 колонок из 12), 'card' — по две в ряд.
  */
 export const gamesPage: { id: string; size: 'feature' | 'wide' | 'narrow' | 'card' }[] = [
+  { id: 'snowball', size: 'feature' },
   { id: 'pumpkin-night', size: 'feature' },
   { id: 'hollowgrin', size: 'wide' },
   { id: 'fold-the-duo', size: 'narrow' },
