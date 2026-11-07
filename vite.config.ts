@@ -23,6 +23,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         games: resolve(__dirname, 'games/index.html'),
+        cornerGuy: resolve(__dirname, 'corner-guy/index.html'),
       },
     },
     // three.js and Нетопырь live in one lazily loaded chunk (~150 kB gzip), loaded after the page is up

@@ -915,3 +915,178 @@ html:not([data-bat-ready]) .bat-halo {
   opacity: var(--night);
   transition: opacity 0.9s ease;
 }
+
+/* ---------- страница Corner Guy (corner-guy/index.html): ролик, строка об игре, лист ожидания ---------- */
+.cg {
+  padding-top: calc(var(--head-h) + 56px);
+  padding-bottom: 120px;
+}
+.cg [hidden] {
+  display: none !important;
+}
+.cg__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 56px;
+  align-items: center;
+}
+.cg__text {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.cg__badge {
+  margin-bottom: -4px;
+}
+.cg__title {
+  margin: 0;
+  font-size: clamp(56px, 7vw, 112px);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+}
+.cg__pitch {
+  margin: 0;
+  max-width: 24em;
+  font-size: clamp(19px, 1.6vw, 23px);
+  line-height: 1.45;
+  color: var(--sub);
+}
+.cg__form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+.cg__label {
+  font-size: 17px;
+  font-weight: 600;
+}
+.cg__row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cg__input {
+  flex: 1 1 220px;
+  min-width: 0;
+  min-height: 60px;
+  padding: 0 24px;
+  border: 2px solid var(--rule);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--fg);
+  font: 500 18px var(--font);
+  transition: background-color var(--fade), color var(--fade), border-color var(--fade);
+}
+.cg__input::placeholder {
+  color: var(--sub);
+  opacity: 0.7;
+}
+.cg__input:focus-visible {
+  outline-offset: 2px;
+}
+.cg__submit.btn--cta {
+  min-height: 60px;
+  padding: 0 30px;
+  font-size: 18px;
+}
+.cg__submit:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+.cg__hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.cg__note {
+  margin: 0;
+  font-size: 15px;
+  color: var(--sub);
+}
+.cg__note.is-error {
+  color: var(--accent);
+  font-weight: 600;
+}
+.cg__done {
+  margin: 12px 0 0;
+  padding: 22px 26px;
+  border-radius: 14px;
+  background: var(--surf);
+  font-size: 18px;
+  line-height: 1.5;
+}
+.cg__done .link {
+  text-decoration: underline;
+  text-underline-offset: 0.14em;
+}
+.cg__follow {
+  margin: 0;
+  font-size: 16px;
+  color: var(--sub);
+}
+.cg__follow .link {
+  color: var(--fg);
+  font-weight: 600;
+}
+.cg__video {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+}
+.cg__video video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  cursor: pointer;
+}
+.cg__sound {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font: 600 15px var(--font);
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.cg__sound:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+.cg__sound[aria-pressed='false'] .cg__wave {
+  opacity: 0.35;
+}
+/* телефон и узкое окно: сначала название, строка и почта, ролик под ними */
+@media (max-width: 900px) {
+  .cg {
+    padding-top: calc(var(--head-h) + 32px);
+    padding-bottom: 80px;
+  }
+  .cg__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+  .cg__text {
+    gap: 18px;
+  }
+}
+@media (max-width: 640px) {
+  .cg__submit.btn--cta {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}
