@@ -104,13 +104,14 @@ export const games: Game[] = [
 export const home = { featured: 'corner-guy', row: ['snowball', 'hollowgrin'] }
 
 /**
- * Страница /games: сверху вниз. 'feature' — большая карточка на всю ширину (видео играет сразу только
- * у первой), 'wide' и 'narrow' — пара в одном ряду (7 и 5 колонок из 12), 'card' — по две в ряд.
+ * Страница /games: сверху вниз. Первая игра списка всегда идёт большим баннером на всю ширину
+ * (видео играет сразу), size у неё не пишется. Остальные — обычные карточки: 'wide' и 'narrow' —
+ * пара в одном ряду (7 и 5 колонок из 12), 'card' — по две в ряд. Второго баннера не бывает.
  */
-export const gamesPage: { id: string; size: 'feature' | 'wide' | 'narrow' | 'card' }[] = [
-  { id: 'corner-guy', size: 'feature' },
-  { id: 'snowball', size: 'feature' },
+export const gamesPage: [{ id: string }, ...{ id: string; size: 'wide' | 'narrow' | 'card' }[]] = [
+  { id: 'corner-guy' },
+  { id: 'snowball', size: 'card' },
+  { id: 'pumpkin-night', size: 'card' },
   { id: 'hollowgrin', size: 'wide' },
   { id: 'fold-the-duo', size: 'narrow' },
-  { id: 'pumpkin-night', size: 'card' },
 ]

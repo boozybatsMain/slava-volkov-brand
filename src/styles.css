@@ -924,6 +924,11 @@ html:not([data-bat-ready]) .bat-halo {
 .cg [hidden] {
   display: none !important;
 }
+/* «← Games» над сеткой, как «← Slava Volkov» на странице всех игр */
+.cg__back {
+  display: inline-block;
+  margin-bottom: 40px;
+}
 .cg__grid {
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
@@ -1075,6 +1080,9 @@ html:not([data-bat-ready]) .bat-halo {
   .cg {
     padding-top: calc(var(--head-h) + 32px);
     padding-bottom: 80px;
+  }
+  .cg__back {
+    margin-bottom: 28px;
   }
   .cg__grid {
     grid-template-columns: minmax(0, 1fr);
