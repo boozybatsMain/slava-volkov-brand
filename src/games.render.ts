@@ -54,24 +54,27 @@ function awards(g: Game) {
   )
 }
 
+/** target for a card link: own pages open in the same tab, games elsewhere in a new one. */
+const target = (href: string) => (href.startsWith('/') ? '' : ' target="_blank" rel="noopener"')
+
 /** An <a> when the game has a link, a plain block otherwise. A game with an award gets a block that holds
  *  the card link (display: contents, so the layout is the same) and the award links next to it. */
 function wrap(g: Game, cls: string, inner: string) {
   const attrs = `class="${cls}${g.awards?.length ? ' has-award' : ''}" data-bat-avoid${g.video ? ' data-video' : ''}`
   if (g.awards?.length) {
     const link = g.href
-      ? `<a class="contents" href="${esc(g.href)}" target="_blank" rel="noopener">${inner}</a>`
+      ? `<a class="contents" href="${esc(g.href)}"${target(g.href)}>${inner}</a>`
       : inner
     return `<div ${attrs}>${link}${awards(g)}</div>`
   }
   return g.href
-    ? `<a ${attrs} href="${esc(g.href)}" target="_blank" rel="noopener">${inner}</a>`
+    ? `<a ${attrs} href="${esc(g.href)}"${target(g.href)}>${inner}</a>`
     : `<div ${attrs}>${inner}</div>`
 }
 
 export function feature(g: Game, autoplay: boolean, eager = false) {
   const badge = g.badge ? `<span class="badge">${esc(g.badge)}</span>` : ''
-  const play = g.href ? '<span class="feat__play">Play</span>' : ''
+  const play = g.href ? `<span class="feat__play">${esc(g.cta ?? 'Play')}</span>` : ''
   return wrap(
     g,
     'feat',

@@ -18,12 +18,27 @@ export interface Game {
   /** Видео-обложка: на главной акцентной игре играет сразу, у остальных при наведении. */
   video?: { mp4: string; webm?: string }
   badge?: string
+  /** Надпись на кнопке большой карточки вместо «Play». */
+  cta?: string
   /** Награды: плашки с лавром в углу обложки, сверху вниз; каждая ведёт на свои результаты джема.
    *  tier — цвет: gold (золото) или silver (серебро). */
   awards?: { title: string; event: string; href: string; tier: 'gold' | 'silver' }[]
 }
 
 export const games: Game[] = [
+  {
+    id: 'corner-guy',
+    name: 'Corner Guy',
+    href: '/corner-guy/',
+    line: 'A boxing game where you can’t punch. You coach your boxer with your voice.',
+    cover: 'corner-guy.webp',
+    coverW: 1280,
+    coverH: 720,
+    alt: 'Corner Guy: a bruised cartoon boxer in his corner between rounds, listening to his coach',
+    video: { mp4: 'corner-guy.mp4' },
+    badge: 'Coming to Steam',
+    cta: 'Join the waitlist',
+  },
   {
     id: 'snowball',
     name: 'Snowball',
@@ -86,13 +101,14 @@ export const games: Game[] = [
 ]
 
 /** Главная: первая — большая, с видео сразу; две следующие — карточки с видео при наведении. */
-export const home = { featured: 'snowball', row: ['hollowgrin', 'fold-the-duo'] }
+export const home = { featured: 'corner-guy', row: ['snowball', 'hollowgrin'] }
 
 /**
  * Страница /games: сверху вниз. 'feature' — большая карточка на всю ширину (видео играет сразу только
  * у первой), 'wide' и 'narrow' — пара в одном ряду (7 и 5 колонок из 12), 'card' — по две в ряд.
  */
 export const gamesPage: { id: string; size: 'feature' | 'wide' | 'narrow' | 'card' }[] = [
+  { id: 'corner-guy', size: 'feature' },
   { id: 'snowball', size: 'feature' },
   { id: 'hollowgrin', size: 'wide' },
   { id: 'fold-the-duo', size: 'narrow' },
