@@ -15,7 +15,7 @@ interface Ctx {
   env: { DB?: D1 }
 }
 
-const ORIGINS = ['https://slavavolkov.com', 'https://www.slavavolkov.com', 'https://boozybatsmain.github.io']
+const ORIGINS = ['https://slavavolkov.com', 'https://www.slavavolkov.com', 'https://slavavolkov.pages.dev', 'https://boozybatsmain.github.io']
 const EMAIL = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/
 
 function cors(request: Request): Record<string, string> {
