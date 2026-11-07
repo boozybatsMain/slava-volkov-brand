@@ -1,8 +1,9 @@
 // Страница Corner Guy (corner-guy/index.html): звук ролика и лист ожидания.
 // Заявка уходит в функцию Cloudflare Pages /api/waitlist (functions/api/waitlist.ts), почты лежат в базе D1.
 
-/** Куда уходит заявка. На зеркале GitHub Pages функций нет, поэтому оттуда — на основной домен. */
-const WAITLIST_URL = /(^|\.)slavavolkov\.com$/.test(location.hostname) ? '/api/waitlist' : 'https://slavavolkov.com/api/waitlist'
+/** Куда уходит заявка. Функция есть везде, где сайт отдаёт Cloudflare (slavavolkov.com и slavavolkov.pages.dev —
+ *  его X пока не помечает опасным); на зеркале GitHub Pages функций нет, оттуда — на основной домен. */
+const WAITLIST_URL = location.hostname.endsWith('github.io') ? 'https://slavavolkov.com/api/waitlist' : '/api/waitlist'
 /** Отметка в браузере, что этот человек уже записался: при повторном заходе сразу «You’re in». */
 const JOINED_KEY = 'cg-waitlist'
 
