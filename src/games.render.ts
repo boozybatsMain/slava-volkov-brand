@@ -100,20 +100,11 @@ export function homeGames() {
 }
 
 export function allGames() {
-  let first = true
+  const [top, ...rest] = gamesPage
   return (
     '<div class="all">' +
-    gamesPage
-      .map(({ id, size }) => {
-        const g = byId(id)
-        if (size === 'feature') {
-          const html = `<div class="all__feat">${feature(g, first, first)}</div>`
-          first = false
-          return html
-        }
-        return card(g, ` all__${size}`)
-      })
-      .join('') +
+    `<div class="all__feat">${feature(byId(top.id), true, true)}</div>` +
+    rest.map(({ id, size }) => card(byId(id), ` all__${size}`)).join('') +
     '</div>'
   )
 }
