@@ -32,7 +32,7 @@
 - Кадры: в контейнере только программный WebGL (SwiftShader). Там днём 60 fps, ночью 30 fps, и узкое место — сам WebGL. На настоящей видеокарте не мерилось.
 
 ## Дальше
-- Почта hello@slavavolkov.com — заработает, когда будет домен и ящик. Соцсети: X, TikTok, YouTube — @buzzybats, Instagram — instagram.com/buzzy_bats (подпись на сайте общая, @buzzybats).
+- Почта hello@slavavolkov.com — заработает, когда будет домен и ящик. Соцсети: X, TikTok, YouTube, Instagram, Threads — везде @buzzybats (с 16.11.2026; Instagram раньше был buzzy_bats). Порядок значков на сайте: X, Instagram, Threads, TikTok, YouTube.
 - С 04.11 первая на главной — Snowball (genex.games/snowball, плашка Newest). Pumpkin Night убрана из топ-3 и осталась только на /games, обычной карточкой последней (под парой Hollowgrin + Unfold the Duo); её ссылка — genex.games/snowball?mode=pumpkin.
 - Награды джемов — поле `awards` (список, сверху вниз, tier gold/silver) в `src/games.data.ts`: плашки с лавром столбиком в левом верхнем углу обложки, каждая — отдельная ссылка на результаты (карточка тогда — div с `.contents`-ссылкой внутри, чтобы ссылки не вкладывались). Сейчас у Hollowgrin: 1st Place · Cohesion & Craft (золото) и 2nd Place · Overall (серебро), All Tools Allowed 3 на itch.io.
 - Corner Guy, Frigate Naval Battles, Big Big Kick убраны, пока Слава их не доделает; добавлять в `src/games.data.ts`, когда скажет.
