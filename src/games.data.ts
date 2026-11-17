@@ -52,6 +52,17 @@ export const games: Game[] = [
     badge: 'Newest',
   },
   {
+    id: 'cut-to-black',
+    name: 'Cut to Black',
+    href: 'https://buzzybats.itch.io/cut-to-black',
+    line: 'Play on itch.io',
+    cover: 'cut-to-black.webp',
+    coverW: 1280,
+    coverH: 720,
+    alt: 'Cut to Black: a night-time apartment block in the rain, a man in a lit room beside a tall dark figure',
+    video: { mp4: 'cut-to-black.mp4' },
+  },
+  {
     id: 'pumpkin-night',
     name: 'Pumpkin Night',
     href: 'https://genex.games/snowball?mode=pumpkin',
@@ -111,7 +122,8 @@ export const home = { featured: 'corner-guy', row: ['snowball', 'hollowgrin'] }
 export const gamesPage: [{ id: string }, ...{ id: string; size: 'wide' | 'narrow' | 'card' }[]] = [
   { id: 'corner-guy' },
   { id: 'snowball', size: 'card' },
-  { id: 'pumpkin-night', size: 'card' },
+  { id: 'cut-to-black', size: 'card' },
   { id: 'hollowgrin', size: 'wide' },
   { id: 'fold-the-duo', size: 'narrow' },
+  { id: 'pumpkin-night', size: 'card' },
 ]

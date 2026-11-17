@@ -34,6 +34,7 @@
 ## Дальше
 - Почта hello@slavavolkov.com — заработает, когда будет домен и ящик. Соцсети: X, TikTok, YouTube, Instagram, Threads — везде @buzzybats (с 16.11.2026; Instagram раньше был buzzy_bats). Порядок значков на сайте: X, Instagram, Threads, TikTok, YouTube.
 - С 04.11 первая на главной — Snowball (genex.games/snowball, плашка Newest). Pumpkin Night убрана из топ-3 и осталась только на /games, обычной карточкой последней (под парой Hollowgrin + Unfold the Duo); её ссылка — genex.games/snowball?mode=pumpkin.
+- С 17.11 на /games есть Cut to Black (buzzybats.itch.io/cut-to-black): обычная карточка в паре со Snowball, в топ-3 главной не входит. Обложка и 5-секундное видео нарезаны из хайлайтов, которые прислал Слава (itch.io из контейнера не открывается). Строка под названием пока «Play on itch.io»; описание с itch.io добавить, если Слава захочет.
 - Награды джемов — поле `awards` (список, сверху вниз, tier gold/silver) в `src/games.data.ts`: плашки с лавром столбиком в левом верхнем углу обложки, каждая — отдельная ссылка на результаты (карточка тогда — div с `.contents`-ссылкой внутри, чтобы ссылки не вкладывались). Сейчас у Hollowgrin: 1st Place · Cohesion & Craft (золото) и 2nd Place · Overall (серебро), All Tools Allowed 3 на itch.io.
 - Corner Guy, Frigate Naval Battles, Big Big Kick убраны, пока Слава их не доделает; добавлять в `src/games.data.ts`, когда скажет.
 - Домен slavavolkov.com (Слава купит): CNAME в `public/` и настройка Pages.
